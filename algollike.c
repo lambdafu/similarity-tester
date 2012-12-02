@@ -1,23 +1,10 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: algollike.c,v 2.8 2012-05-06 15:37:17 Gebruiker Exp $
-*/
-
-/*	This module implements the routines Init_Language, May_Be_Start_Of_Run
-	and Best_Run_Size for ALGOL-like languages, in which it is meaningful
-	and useful to isolate function bodies.
-
-	It requires the user to define, preferably in Xlang.l, four token
-	sets, represented as Token set[] and terminated by No_Token:
-
-	Token Non_Finals[]	tokens that may not end a chunk
-	Token Non_Initials[]	tokens that may not start a chunk
-	Token Openers[]		openers of parentheses that must balance
-					in functions
-	Token Closers[]		the corresponding closers, in the same order
+	$Id: algollike.c,v 2.9 2012-06-06 17:49:18 Gebruiker Exp $
 */
 
 #include	"options.h"
+#include	"error.h"
 #include	"token.h"
 #include	"algollike.h"
 
@@ -30,67 +17,52 @@ static char non_initials[N_REGULAR_TOKENS];
 static char openers[N_REGULAR_TOKENS];
 static char closers[N_REGULAR_TOKENS];
 
+						/* Init_Language */
+static void
+cvt2bittable(const Token *tl, char bt[]) {
+	/* assumes bt[] is cleared */
+	int i;
+	int cnt = 1;
+
+	for (i = 0; !Token_EQ(tl[i], No_Token); i++) {
+		int index = Token2int(tl[i]);
+		if (index < 0 || index >= N_REGULAR_TOKENS)
+			fatal("internal error: bad Token list");
+		bt[index] = cnt++;
+	}
+}
+
+void
+Init_Algol_Language(
+	const Token Non_Finals[],
+	const Token Non_Initials[],
+	const Token Openers[],
+	const Token Closers[]
+) {
+	/* convert the token sets to bitmaps for speed-up */
+	cvt2bittable(Non_Initials, non_initials);
+	cvt2bittable(Non_Finals, non_finals);
+	cvt2bittable(Openers, openers);
+	cvt2bittable(Closers, closers);
+}
+
+						/* May_Be_Start_Of_Run */
 static int
 pos_in_set(const char set[], const Token tk) {
 	if (!is_regular_token(tk)) return 0;
 	return set[Token2int(tk)];
 }
 
-static void cvt2bittable(const Token *tl, char bt[N_REGULAR_TOKENS]);
-static unsigned int largest_function(const Token *str, unsigned int size);
-
-void
-Init_Language(void) {
-	/* convert the token sets to bitmaps */
-	cvt2bittable(Non_Finals, non_finals);
-	cvt2bittable(Non_Initials, non_initials);
-	cvt2bittable(Openers, openers);
-	cvt2bittable(Closers, closers);
-}
-
-static void
-cvt2bittable(const Token *tl, char bt[N_REGULAR_TOKENS]) {
-	/* assumes bt[] is cleared */
-	int i;
-	int cnt = 1;
-
-	for (i = 0; !Token_EQ(tl[i], No_Token); i++) {
-		bt[Token2int(tl[i])] = cnt++;
-	}
-}
-
 int
-May_Be_Start_Of_Run(const Token tk) {
+May_Be_Start_Of_Algol_Run(const Token tk) {
 	return pos_in_set(non_initials, tk) == 0;
 }
 
-unsigned int
-Best_Run_Size(const Token *tka, unsigned int size) {
-	/*	Checks the run starting at tka[0] with length size for
-		acceptability in the language.  Cuts from the end if
-		necessary and returns the accepted length, which may
-		be zero.
-	*/
-
-	if (is_set_option('f')) {
-		/* reduce to a function-like form first */
-		size = largest_function(tka, size);
-	}
-
-	while (	/* there is trailing garbage */
-	       size != 0 && pos_in_set(non_finals, tka[size-1])
-	) {
-		/* remove it */
-		size--;
-	}
-
-	return size;
-}
-
+						/* Best_Run_Size */
 static unsigned int
-largest_function(const Token *tka, unsigned int size) {
+largest_routine(const Token *tk_array, unsigned int size) {
 	/*	Returns the size of the longest sequence starting at
-		tka[0] and not containing unbalanced parentheses.
+		tk_array[0] and not containing unbalanced parentheses.
 		Does not check the nesting of the parentheses, but then,
 		sim is syntax-free anyway.
 	*/
@@ -107,9 +79,9 @@ largest_function(const Token *tka, unsigned int size) {
 		balance_count[i] = 0;
 	}
 
-	/* scan tka[] and see how far we get */
+	/* scan tk_array[] and see how far we get */
 	for (pos = 0; pos < size; pos++) {
-		Token tk = tka[pos];
+		Token tk = tk_array[pos];
 		int pp;		/* parenthesis position */
 
 		/* account for openers */
@@ -135,9 +107,31 @@ largest_function(const Token *tka, unsigned int size) {
 		}
 
 		if (n_imbalances == 0) {
-			/* register balance point */
+			/* register the balance point */
 			mrb_size = pos + 1;
 		}
 	}
 	return mrb_size;
+}
+
+unsigned int
+Best_Algol_Run_Size(const Token *tk_array, unsigned int size) {
+	/*	Checks the run starting at tk_array[0] with length size for
+		acceptability in the language.  Cuts from the end if necessary
+		and returns the accepted length, which may be zero.
+	*/
+
+	if (is_set_option('f')) {
+		/* reduce to a routine-like form first */
+		size = largest_routine(tk_array, size);
+	}
+
+	while (	/* there is trailing garbage */
+	       size != 0 && pos_in_set(non_finals, tk_array[size-1])
+	) {
+		/* remove it */
+		size--;
+	}
+
+	return size;
 }

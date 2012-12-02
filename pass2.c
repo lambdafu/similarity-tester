@@ -1,14 +1,15 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: pass2.c,v 2.17 2012-06-05 09:58:53 Gebruiker Exp $
+	$Id: pass2.c,v 2.19 2012-06-08 16:04:29 Gebruiker Exp $
 */
 
 #include	<stdio.h>
 
 #include	"debug.par"
 #include	"sim.h"
+#include	"token.h"
 #include	"text.h"
-#include	"lex.h"
+#include	"lang.h"
 #include	"pass2.h"
 
 #ifdef	DB_POS

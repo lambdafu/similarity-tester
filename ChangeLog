@@ -1,3 +1,14 @@
+2012-06-09  Dick Grune
+
+	* lang.h:
+	The *lang.l files are unusual in two respects:
+	1. they present two interfaces to the rest of the system:
+	language.[ch], static data about the language, and lang.[ch], dynamic
+	data about the input file's content;
+	2. both interfaces come with multiple implementations, one for each
+	*lang.l file; i.e., they are abstract.
+	This has been sorted out with some difficulty.
+
 2012-05-08  Dick Grune
 
 	* Changed to 16-bit tokens, for better resolution for sim_text and
@@ -617,5 +628,5 @@
 
 #	This file is part of the software similarity tester SIM.
 #	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-#	$Id: ChangeLog,v 2.18 2012-05-08 12:15:59 Gebruiker Exp $
+#	$Id: ChangeLog,v 2.19 2012-06-09 08:09:17 Gebruiker Exp $
 #

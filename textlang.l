@@ -1,7 +1,7 @@
 %{
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: textlang.l,v 1.10 2012-05-09 08:26:50 Gebruiker Exp $
+	$Id: textlang.l,v 1.13 2012-06-08 16:04:30 Gebruiker Exp $
 */
 
 /*
@@ -9,13 +9,20 @@
 */
 
 #include	"sim.h"
-#include	"language.h"
 #include	"token.h"
 #include	"idf.h"
+
 #include	"lex.h"
 #include	"lang.h"
+#include	"language.h"
 
-/* Language-dependent Code */
+/* General language front end data */
+Token lex_token;
+unsigned int lex_nl_cnt;
+unsigned int lex_tk_cnt;
+unsigned int lex_non_ascii_cnt;
+
+/* Language-dependent code */
 
 void
 Init_Language(void) {
@@ -43,6 +50,8 @@ Best_Run_Size(const Token *str, unsigned int size) {
 }
 
 %}
+
+%option	noyywrap
 
 WordElem	([-a-zA-Z\200-\377])
 TightWord	({WordElem}+)
@@ -72,14 +81,9 @@ SpacedWord	({LooseElem}+{WordElem})
 
 %%
 
-/* Language-INdependent Code */
+/* More language-dependent code */
 
 void
 yystart(void) {
 	BEGIN INITIAL;
-}
-
-int
-yywrap(void) {
-	return 1;
 }

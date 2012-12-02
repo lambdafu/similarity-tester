@@ -1,32 +1,28 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: lang.h,v 1.4 2012-05-07 16:28:32 Gebruiker Exp $
+	$Id: lang.h,v 1.7 2012-06-09 08:09:18 Gebruiker Exp $
 */
 
 /*
-	The token-providing module 'lang' has three interfaces:
-	-	lang.h, which provides access to the lowest-level token
-			routines, to be used by the next level.
-	-	lex.h, which provides the lex variables, to be used by
-			all and sundry.
-	-	language.h, which provides language-specific info about
-			tokens, concerning their suitability as initial
-			and final tokens, to be used by higher levels.
-
-	This structure is not satisfactory, but it is also unreasonable
-	to combine them in one interface.
-
-	There is no single lang.c; rather it is represented by the
-	various Xlang.c files generated from the Xlang.l files.
+	The *lang.l files provide two interfaces:
+	    language.[ch]	static data about the language
+	    lang.[ch]		dynamic data about the input file's content
+	This is lang.[ch].
 */
 
-#include	"token.h"
+/*
+	The abstract module 'lang' provides access to the lowest-level
+	token routines and data.
+	The actual implementation derives from one of the *lang.l files.
 
-/* useful macros */
-#define	return_tk(tk)	{lex_tk_cnt++; lex_token = (tk); return 1;}
-#define	return_ch(ch)	{lex_tk_cnt++; lex_token = int2Token((int)(ch)); return 1;}
-#define	return_eol()	{lex_nl_cnt++; lex_token = End_Of_Line; return 1;}
+	There is a dummy implementation lang.c.
+*/
 
+extern FILE *yyin;
 extern int yylex(void);
 extern void yystart(void);
-extern FILE *yyin;
+
+extern Token lex_token;			/* token produced, or End_Of_Line */
+extern unsigned int lex_nl_cnt;		/* line count */
+extern unsigned int lex_tk_cnt;		/* token position */
+extern unsigned int lex_non_ascii_cnt;	/* # of non-ASCII chars found */

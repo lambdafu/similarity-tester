@@ -1,11 +1,12 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: tokenarray.c,v 1.11 2012-06-05 09:58:55 Gebruiker Exp $
+	$Id: tokenarray.c,v 1.13 2012-06-08 16:04:30 Gebruiker Exp $
 */
 
 #include	"error.h"
-#include	"lex.h"
 #include	"Malloc.h"
+#include	"token.h"
+#include	"lang.h"
 #include	"tokenarray.h"
 
 #define	TK_INCR		10000		/* increment of token array size */

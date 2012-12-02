@@ -1,6 +1,6 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: idf.h,v 2.9 2012-06-05 09:58:53 Gebruiker Exp $
+	$Id: idf.h,v 2.10 2012-06-08 06:52:15 Gebruiker Exp $
 */
 
 /*	Idf module:
@@ -12,8 +12,6 @@
 		returns a token unequal to No_Token or End_Of_Line, derived
 		from str through hashing
 */
-
-#include	"token.h"
 
 /* the struct for keywords etc. */
 struct idf {

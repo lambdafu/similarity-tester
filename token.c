@@ -1,6 +1,6 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: token.c,v 2.9 2012-05-13 09:05:50 Gebruiker Exp $
+	$Id: token.c,v 2.10 2012-06-08 16:04:30 Gebruiker Exp $
 */
 
 /*
@@ -11,7 +11,7 @@
 
 #include	"token.h"
 
-int
+static int
 Token_in_range(const Token tk, int low, int high) {
 	int tki = Token2int(tk);
 	if (tki < low) return 0;
@@ -30,6 +30,14 @@ check_and_print(
 	}
 	return 0;
 }
+
+#define	is_simple_token(tk)	(Token_in_range(tk, 0x0001, 0x00FF))
+#define	is_CTRL_token(tk)	(Token_in_range(tk, 0x0101, 0x011E))
+#define	is_NORM_token(tk)	(Token_in_range(tk, 0x0121, 0x017E))
+#define	is_MTCT_token(tk)	(Token_in_range(tk, 0x0181, 0x019E))
+#define	is_META_token(tk)	(Token_in_range(tk, 0x01A1, 0x01FE))
+#define	is_hashed_token(tk)	(Token_in_range(tk, 0x0200, 0xFFFE))
+/* ZZ */
 
 void
 fprint_token(FILE *ofile, const Token tk) {

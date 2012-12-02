@@ -1,6 +1,6 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: token.h,v 2.10 2012-05-13 09:05:50 Gebruiker Exp $
+	$Id: token.h,v 2.12 2012-06-08 16:04:30 Gebruiker Exp $
 */
 
 /*
@@ -42,8 +42,8 @@
 /* For security we want to distinguish tokens from integers. Lint is not
    good at this, so for checking we use a pointer to a weird data type
 */
-struct cccc {int i;};
-typedef struct cccc *Token;
+struct for_lint_only {int i;};
+typedef struct for_lint_only *Token;
 #else	/* if normal */
 typedef unsigned short Token;
 #endif	/* lint/normal */
@@ -62,13 +62,6 @@ typedef unsigned short Token;
 /* tokens from idf_hashed() */				/* 0x0200-0xFFFE */
 #define	End_Of_Line	int2Token(0xFFFF)		/* 0xFFFF */
 
-#define	is_simple_token(tk)	(Token_in_range(tk, 0x0001, 0x00FF))
-#define	is_CTRL_token(tk)	(Token_in_range(tk, 0x0101, 0x011E))
-#define	is_NORM_token(tk)	(Token_in_range(tk, 0x0121, 0x017E))
-#define	is_MTCT_token(tk)	(Token_in_range(tk, 0x0181, 0x019E))
-#define	is_META_token(tk)	(Token_in_range(tk, 0x01A1, 0x01FE))
-#define	is_hashed_token(tk)	(Token_in_range(tk, 0x0200, 0xFFFE))
-
 /* Conversion routines */
 #define	Token2int(c)	((int)(c))
 #define	int2Token(i)	((Token)(i))
@@ -76,7 +69,6 @@ typedef unsigned short Token;
 /* Auxiliaries */
 #define	is_regular_token(tk)	(Token2int(tk) < N_REGULAR_TOKENS)
 extern int Token_EQ(const Token t1, const Token t2);
-extern int Token_in_range(const Token tk, int low, int high);
 extern void fprint_token(FILE *ofile, const Token tk);
 
 #endif	/* _TOKEN_H */

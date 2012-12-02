@@ -1,7 +1,7 @@
 %{
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: m2lang.l,v 2.14 2012-05-06 15:37:18 Gebruiker Exp $
+	$Id: m2lang.l,v 2.18 2012-06-08 16:04:29 Gebruiker Exp $
 */
 
 /*
@@ -10,13 +10,20 @@
 */
 
 #include	"options.h"
-#include	"algollike.h"
 #include	"token.h"
+#include	"language.h"
+#include	"algollike.h"
 #include	"idf.h"
 #include	"lex.h"
 #include	"lang.h"
 
-/* Language-dependent Code */
+/* General language front end data */
+Token lex_token;
+unsigned int lex_nl_cnt;
+unsigned int lex_tk_cnt;
+unsigned int lex_non_ascii_cnt;
+
+/* Language-dependent data */
 
 /*	Most Modula-2 programs start with a number of IMPORTs that look
 	very similar from program to program.  These are skipped by ignoring
@@ -198,7 +205,27 @@ const Token Closers[] = {
 	No_Token
 };
 
+/* Language-dependent code */
+
+void
+Init_Language(void) {
+	Init_Algol_Language(Non_Finals, Non_Initials, Openers, Closers);
+}
+
+
+int
+May_Be_Start_Of_Run(Token ch) {
+	return May_Be_Start_Of_Algol_Run(ch);
+}
+
+unsigned int
+Best_Run_Size(const Token *str, unsigned int size) {
+	return Best_Algol_Run_Size(str, size);
+}
+
 %}
+
+%option	noyywrap
 
 %Start	Comment
 
@@ -299,16 +326,11 @@ Idf		([A-Za-z][A-Za-z0-9_]*)
 
 %%
 
-/* Language-INdependent Code */
+/* More language-dependent code */
 
 void
 yystart(void) {
 	skip_imports = 1;
 	comment_level = 0;
 	BEGIN INITIAL;
-}
-
-int
-yywrap(void) {
-	return 1;
 }

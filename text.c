@@ -1,6 +1,6 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: text.c,v 1.9 2012-06-05 09:58:54 Gebruiker Exp $
+	$Id: text.c,v 1.10 2012-06-08 16:04:30 Gebruiker Exp $
 */
 
 #include	<stdio.h>
@@ -9,7 +9,7 @@
 #include	"sim.h"
 #include	"token.h"
 #include	"stream.h"
-#include	"lex.h"
+#include	"lang.h"
 #include	"Malloc.h"
 #include	"options.h"
 #include	"error.h"

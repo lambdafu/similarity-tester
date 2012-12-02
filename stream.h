@@ -1,6 +1,6 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: stream.h,v 2.5 2012-05-04 15:49:53 Gebruiker Exp $
+	$Id: stream.h,v 2.7 2012-06-08 16:04:30 Gebruiker Exp $
 */
 
 /*
@@ -10,8 +10,7 @@
 	module.  It supplies the routines below.
 */
 
-#include	"token.h"
-
 extern int Open_Stream(const char *);
 extern int Next_Stream_Token_Obtained(void);
 extern void Close_Stream(void);
+extern void Print_Stream(const char *fname);

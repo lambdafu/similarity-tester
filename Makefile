@@ -1,6 +1,6 @@
 #	This file is part of the software similarity tester SIM.
 #	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-#	$Id: Makefile,v 2.49 2012-06-05 14:58:38 Gebruiker Exp $
+#	$Id: Makefile,v 2.52 2012-06-09 08:09:17 Gebruiker Exp $
 #
 
 
@@ -11,20 +11,16 @@ help:
 	@echo  'test:           compile sim_c and run a simple test'
 	@echo  ''
 	@echo  'binaries:       create all binaries'
-	@echo  'install_all:    install all binaries'
+	@echo  'exes:           create executables in MSDOS
+	@echo  'install:        install all binaries'
 	@echo  ''
-	@echo  'lint:           lint sim_c sources'
-	@echo  'lint.all:       lint all sim sources'
-	@echo  'simsim:         run sim on the sim sources'
+	@echo  'lint:           lint sim sources'
+	@echo  'simsim:         run sim_c on the sim sources'
 	@echo  ''
-	@echo  'depend:         update dependencies in Makefile'
-	@echo  'clean:          remove created files'
-	@echo  ''
-	@echo  'sim_exes:       create DOS executables in MSDOS; set date; make clean'
-
+	@echo  'fresh:          remove created files'
 
 #
-# When you modify any of the following flags, do 'make clean'
+# When you modify any of the following macros, do 'make clean'
 #
 
 # System dependencies
@@ -44,7 +40,6 @@ SUBSYSTEM =	SOLARIS
 DIR =		/home/dick
 BINDIR =	$(DIR)/bin.`$(DIR)/bin/arch`
 MAN1DIR =	$(DIR)/man/man1
-WWWDIR =	$(DIR)/www
 
 # Commands
 COPY =		cp -p
@@ -52,7 +47,6 @@ EXE =		#
 LEX =		flex
 LN =		ln
 ZIP =		zip -o
-VIEWDVI =	gs
 
 ################################################################
 # For MSDOS + MinGW
@@ -64,7 +58,6 @@ SUBSYSTEM =	MinGW
 DIR =		C:/BIN
 BINDIR =	C:/BIN
 MAN1DIR =	C:/BIN
-WWWDIR =	~/Documents/www
 
 # Commands (cp required, since xcopy cannot handle forward slashes)
 COPY =		cp -p
@@ -72,7 +65,6 @@ EXE =		.exe
 LEX =		flex
 LN =		ln
 ZIP =		zip -o
-VIEWDVI =	yap
 
 ################################################################
 # General, compiling:
@@ -88,7 +80,6 @@ LINTFLAGS =	-xh
 
 .3.pdf:
 		man2pdf $<
-
 #	=============== end of ../lib/sysidf.mk
 
 # Compiler Options
@@ -159,11 +150,14 @@ test:		sim.res stream.res percentages.res	# three simple tests
 
 #	B I N A R I E S
 
-BINARIES =	sim_c$(EXE) sim_java$(EXE) sim_pasc$(EXE) \
-		sim_m2$(EXE) sim_lisp$(EXE) sim_mira$(EXE) \
-		sim_text$(EXE)
+BINARIES =	sim_c$(EXE) sim_java$(EXE) sim_pasc$(EXE) sim_m2$(EXE) \
+	 	sim_lisp$(EXE) sim_mira$(EXE) sim_text$(EXE)
 
-all:		$(BINARIES)
+binaries:	$(BINARIES)
+
+EXES =		sim_c.exe sim_java.exe sim_pasc.exe sim_m2.exe \
+		sim_lisp.exe sim_mira.exe sim_text.exe
+exes:		$(EXES)
 
 
 #	A U X I L I A R Y   M O D U L E S
@@ -171,6 +165,7 @@ all:		$(BINARIES)
 # Common modules:
 COM_CFS =	token.c lex.c stream.c text.c tokenarray.c error.c $(DEBUG_C) \
 		ForEachFile.c fname.c Malloc.c
+ABS_CFS =	lang.c language.c# C files for the abstract modules
 COM_OBJ =	token.o lex.o stream.o text.o tokenarray.o error.o $(DEBUG_O) \
 		ForEachFile.o fname.o Malloc.o
 COM_SRC =	token.h lex.h stream.h text.h tokenarray.h error.h \
@@ -383,23 +378,13 @@ percentages.res:sim_$(TEST_LANG)$(EXE) $(TEST_INP)
 
 TEST_GRB =	stream.res
 
-# More simple tests, on the C version only:
-simsim:		sim_c$(EXE) $(SRC)
-		./sim_c$(EXE) -fr 20 $(SRC)
+# More simple tests, using the C version only:
+simsim:		sim_c$(EXE) $(SIM_CFS) $(ALG_CFS)
+		./sim_c$(EXE) -fr 20 $(SIM_CFS) $(ALG_CFS)
 
 # Lint
-lint:		$(SIM_SRC) $(ALG_SRC)
-		$(LINT) $(LINTFLAGS) $(SIM_CFS) $(ALG_CFS) | grep -v yy
-
-lint.all:	$(SIM_C_CFS) $(SIM_JAVA_CFS) $(SIM_PASC_CFS) $(SIM_M2_CFS) \
-		$(SIM_LISP_CFS) $(SIM_MIRA_CFS) $(SIM_TEXT_CFS)
-		$(LINT) $(LINTFLAGS) $(SIM_C_CFS) | grep -v yy
-		$(LINT) $(LINTFLAGS) $(SIM_JAVA_CFS) | grep -v yy
-		$(LINT) $(LINTFLAGS) $(SIM_PASC_CFS) | grep -v yy
-		$(LINT) $(LINTFLAGS) $(SIM_M2_CFS) | grep -v yy
-		$(LINT) $(LINTFLAGS) $(SIM_LISP_CFS) | grep -v yy
-		$(LINT) $(LINTFLAGS) $(SIM_MIRA_CFS) | grep -v yy
-		$(LINT) $(LINTFLAGS) $(SIM_TEXT_CFS) | grep -v yy
+lint:		$(SIM_SRC) $(ALG_SRC) $(ABS_CFS)
+		$(LINT) $(LINTFLAGS) $(SIM_CFS) $(ALG_CFS) $(ABS_CFS)
 
 
 #	O T H E R   E N T R I E S
@@ -418,17 +403,9 @@ FLS =		$(SIM_FLS) $(ALG_FLS) \
 		$(CLANG_FLS) $(JAVALANG_FLS) $(PASCLANG_FLS) $(M2LANG_FLS) \
 		$(LISPLANG_FLS) $(MIRALANG_FLS) $(TEXTLANG_FLS) \
 		sysidf.mk sysidf.msdos sysidf.unix
-DOC =		README README.1st sim.1 sim.txt sim.html \
-		ChangeLog Answers TechnReport
+DOC =		README sim.1 sim.txt sim.html ChangeLog Answers TechnReport
 
-ALL_FLS =	Makefile $(FLS) $(DOC)
-
-# Create .EXE for MSDOS
-SIM_EXES =	sim_c.exe sim_java.exe sim_pasc.exe sim_m2.exe \
-		sim_lisp.exe sim_mira.exe sim_text.exe
-sim_exes:	$(SIM_EXES)
-
-# Install and clean scripts
+# Installation
 install_all:	install			# just a synonym
 install:	$(MAN1DIR)/sim.1 \
 		$(BINDIR)/sim_c$(EXE) \
@@ -439,11 +416,11 @@ install:	$(MAN1DIR)/sim.1 \
 		$(BINDIR)/sim_mira$(EXE) \
 		$(BINDIR)/sim_text$(EXE)
 
-
 $(MAN1DIR)/sim.1:	sim.1
 		$(COPY) sim.1 $@
 
 
+# Clean-up
 .PHONY:		clean fresh
 clean:
 		-rm -f *.o
@@ -459,37 +436,46 @@ fresh:		clean
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 ForEachFile.o: ForEachFile.c ForEachFile.h fname.h
 Malloc.o: Malloc.c Malloc.h
-add_run.o: add_run.c sim.h debug.par runs.h aiso.spc percentages.h \
+add_run.o: add_run.c sim.h debug.par text.h runs.h aiso.spc percentages.h \
  Malloc.h options.h error.h add_run.h
-algollike.o: algollike.c options.h token.h algollike.h language.h
-clang.o: clang.c options.h algollike.h language.h token.h idf.h lex.h \
+algollike.o: algollike.c options.h error.h token.h algollike.h language.h
+clang.o: clang.c options.h algollike.h token.h language.h idf.h lex.h \
  lang.h
-compare.o: compare.c sim.h tokenarray.h token.h hash.h language.h \
+compare.o: compare.c sim.h text.h tokenarray.h token.h hash.h language.h \
  options.h add_run.h compare.h debug.par
 count_sim_dup.o: count_sim_dup.c
 debug.o: debug.c debug.h
 error.o: error.c sim.h error.h
 fname.o: fname.c fname.h
-hash.o: hash.c system.par debug.par sim.h Malloc.h error.h language.h \
- token.h tokenarray.h options.h hash.h
+hash.o: hash.c system.par debug.par sim.h text.h Malloc.h error.h \
+ language.h token.h tokenarray.h options.h hash.h
 idf.o: idf.c system.par token.h idf.h
+javalang.o: javalang.c options.h algollike.h token.h language.h idf.h \
+ lex.h lang.h
 lex.o: lex.c token.h lex.h
-newargs.o: newargs.c ForEachFile.h fname.h Malloc.h error.h
+lisplang.o: lisplang.c algollike.h token.h language.h lex.h lang.h idf.h
+m2lang.o: m2lang.c options.h algollike.h token.h language.h idf.h lex.h \
+ lang.h
+miralang.o: miralang.c algollike.h token.h language.h lex.h lang.h idf.h
+newargs.o: newargs.c ForEachFile.h fname.h Malloc.h error.h newargs.h
 options.o: options.c options.h
+pascallang.o: pascallang.c options.h algollike.h token.h language.h idf.h \
+ lex.h lang.h
 pass1.o: pass1.c debug.par sim.h text.h tokenarray.h token.h lex.h \
  error.h options.h pass1.h
 pass2.o: pass2.c debug.par sim.h text.h lex.h token.h pass2.h \
  sortlist.bdy
-pass3.o: pass3.c system.par debug.par sim.h runs.h aiso.spc Malloc.h \
- error.h options.h pass3.h percentages.h
-percentages.o: percentages.c sim.h runs.h aiso.spc options.h Malloc.h \
- error.h percentages.h sortlist.bdy
-runs.o: runs.c sim.h runs.h aiso.spc debug.par aiso.bdy Malloc.h
+pass3.o: pass3.c system.par debug.par sim.h text.h runs.h aiso.spc \
+ Malloc.h error.h options.h pass3.h percentages.h
+percentages.o: percentages.c sim.h text.h runs.h aiso.spc options.h \
+ Malloc.h error.h percentages.h sortlist.bdy
+runs.o: runs.c sim.h text.h runs.h aiso.spc debug.par aiso.bdy Malloc.h
 sim.o: sim.c system.par settings.par sim.h options.h newargs.h language.h \
- token.h tokenarray.h error.h hash.h compare.h pass1.h pass2.h pass3.h \
- stream.h lex.h Malloc.h
+ token.h error.h text.h runs.h aiso.spc hash.h compare.h pass1.h pass2.h \
+ pass3.h percentages.h stream.h lex.h Malloc.h
 stream.o: stream.c system.par token.h lex.h lang.h stream.h
 text.o: text.c debug.par sim.h token.h stream.h lex.h Malloc.h options.h \
  error.h text.h
+textlang.o: textlang.c sim.h language.h token.h idf.h lex.h lang.h
 token.o: token.c token.h
 tokenarray.o: tokenarray.c error.h lex.h token.h Malloc.h tokenarray.h

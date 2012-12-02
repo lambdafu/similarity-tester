@@ -1,29 +1,16 @@
 
-- Microsoft comment (// ... unescaped \n)
-
-- better structure between X.h and X.c
-
 - runs reported as ... matching text only ... (proper name for Retrieve_Runs())
-
-? db_ not protected by #ifdef but by compilation to void
-
-* see emails
-+	Marcus Brinkmann, separate letters
-+	Scott Kuhl, percentages
--	Yaroslav Halchenko, identifying non-existent lines
-+	Rumen Stefanov,  UTF-8
-+	Jonathan Martin, UTF-8
 
 - plug memory leaks (and still report memory usage!)
 
-- remove language.h from algollike.h
-
 - unify idf2token() in *lang.l
 
-? remove Miranda
+? db_ not protected by #ifdef but by compilation to void
 
+X remove Miranda
 X Mon Apr 11 13:23:41 1994: sim_orca
 X Thu May 13 23:02:46 1993: sim ook voor C++ en Ada
+X macros in token.c; just leave them
 
 Done ================================================================
 
@@ -37,5 +24,20 @@ Done ================================================================
 
 + different defaults per program
 
-+ cleaning up sim.c  & names
++ cleaning up sim.c & names
 
++ Microsoft comment (// ... unescaped \n)
+
++ emails 2009-2011 (A = I answered, R= they replied)
++AR	Marcus Brinkmann, separate letters
++AR	Scott Kuhl, percentages
++AR	Yaroslav Halchenko, identifying non-existent lines
++A	Rumen Stefanov, UTF-8
++A	Jonathan Martin, UTF-8
++AR	UTF-8 (Johnson, Benjamin (US - Chicago))
+
++ better structure between X.h and X.c
+
++ clean-up language.h and its sub-class algollike.h
+
++ warning in README to correct for non-MSDOS

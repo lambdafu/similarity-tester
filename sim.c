@@ -1,6 +1,6 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: sim.c,v 2.29 2012-06-05 14:58:39 Gebruiker Exp $
+	$Id: sim.c,v 2.31 2012-06-08 16:04:29 Gebruiker Exp $
 */
 
 #include	<stdio.h>
@@ -12,6 +12,7 @@
 #include	"sim.h"
 #include	"options.h"
 #include	"newargs.h"
+#include	"token.h"
 #include	"language.h"
 #include	"error.h"
 #include	"text.h"
@@ -23,7 +24,7 @@
 #include	"pass3.h"
 #include	"percentages.h"
 #include	"stream.h"
-#include	"lex.h"
+#include	"lang.h"
 #include	"Malloc.h"
 
 /* command-line parameters */
@@ -67,44 +68,16 @@ static const struct option optlist[] = {
 };
 
 static void
-print_stream(const char *fname) {
-	fprintf(Output_File, "File %s:", fname);
-	if (!Open_Stream(fname)) {
-		fprintf(Output_File, " cannot open\n");
-		return;
-	}
-
-	if (!is_set_option('T')) {
-		fprintf(Output_File,
-			" showing token stream:\nnl_cnt, tk_cnt: %ss",
-			token_name
-		);
-
-		lex_token = End_Of_Line;
-		do {
-			if (Token_EQ(lex_token, End_Of_Line)) {
-				fprintf(Output_File, "\n%u,%u:",
-					lex_nl_cnt, lex_tk_cnt
-				);
-			}
-			else {
-				fprintf(Output_File, " ");
-				fprint_token(Output_File, lex_token);
-			}
-		} while (Next_Stream_Token_Obtained());
-
-		fprintf(Output_File, "\n");
-	}
-
-	Close_Stream();
-}
-
-static void
 read_and_compare_files(int argc, const char **argv, int round) {
 	Read_Input_Files(argc, argv, round);
 	Make_Forward_References();
 	Compare_Files();
 	Free_Forward_References();
+}
+
+static int
+is_new_old_separator(const char *s) {
+	return strcmp(s, "/") == 0;
 }
 
 static void
@@ -114,7 +87,7 @@ reverse_new_input_files(int argc, const char *argv[]) {
 
 	/* find the end of the new files */
 	for (txt_last = 0; txt_last < argc; txt_last++) {
-		if (strcmp(argv[txt_last], "/") == 0) break;
+		if (is_new_old_separator(argv[txt_last])) break;
 	}
 	txt_last--;
 
@@ -179,6 +152,7 @@ main(int argc, const char *argv[]) {
 	else if (is_set_option('R')) {
 		get_new_recursive_args(&argc, &argv);
 	}
+	/* (argc, argv) now represents new_file* [ / old_file*] */
 
 	if (is_set_option('P')) {
 		Threshold_Percentage = 1;
@@ -190,20 +164,17 @@ main(int argc, const char *argv[]) {
 		set_option('s');
 	}
 
-	if (is_set_option('-')) {
-		/* it is the lexical scan only */
-		while (argv[0]) {
-			print_stream(argv[0]);
-			argv++;
-		}
-		return 0;
-	}
-	/* (argc, argv) now represents new_file* [ / old_file*] */
-
 	/* Here the real work starts */
 	Init_Language();
 
-	if (!is_set_option('p')) {
+	if (is_set_option('-')) {
+		/* Just the lexical scan */
+		while (argv[0] && !is_new_old_separator(argv[0])) {
+			Print_Stream(argv[0]);
+			argv++;
+		}
+	}
+	else if (!is_set_option('p')) {
 		/* Runs */
 		read_and_compare_files(argc, argv, 1);
 		Retrieve_Runs();

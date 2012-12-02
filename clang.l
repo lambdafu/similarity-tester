@@ -1,7 +1,7 @@
 %{
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: clang.l,v 2.15 2012-06-05 14:58:39 Gebruiker Exp $
+	$Id: clang.l,v 2.19 2012-06-08 16:04:28 Gebruiker Exp $
 */
 
 /*
@@ -10,13 +10,20 @@
 */
 
 #include	"options.h"
-#include	"algollike.h"
 #include	"token.h"
+#include	"language.h"
+#include	"algollike.h"
 #include	"idf.h"
 #include	"lex.h"
 #include	"lang.h"
 
-/* Language-dependent Code */
+/* General language front end data */
+Token lex_token;
+unsigned int lex_nl_cnt;
+unsigned int lex_tk_cnt;
+unsigned int lex_non_ascii_cnt;
+
+/* Language-dependent data */
 
 /* Data for module idf */
 
@@ -79,7 +86,7 @@ idf2token(int hashing) {
 }
 
 /* Token sets for module algollike */
-const Token Non_Finals[] = {
+static const Token Non_Finals[] = {
 	IDF,		/* identifier */
 	NORM('{'),
 	NORM('('),
@@ -110,26 +117,49 @@ const Token Non_Finals[] = {
 	NORM('w'),	/* while */
 	No_Token
 };
-const Token Non_Initials[] = {
+
+static const Token Non_Initials[] = {
 	NORM(')'),
 	NORM('}'),
 	NORM(';'),
 	No_Token
 };
-const Token Openers[] = {
+
+static const Token Openers[] = {
 	NORM('{'),
 	NORM('('),
 	NORM('['),
 	No_Token
 };
-const Token Closers[] = {
+
+static const Token Closers[] = {
 	NORM('}'),
 	NORM(')'),
 	NORM(']'),
 	No_Token
 };
 
+/* Language-dependent code */
+
+void
+Init_Language(void) {
+	Init_Algol_Language(Non_Finals, Non_Initials, Openers, Closers);
+}
+
+
+int
+May_Be_Start_Of_Run(Token ch) {
+	return May_Be_Start_Of_Algol_Run(ch);
+}
+
+unsigned int
+Best_Run_Size(const Token *str, unsigned int size) {
+	return Best_Algol_Run_Size(str, size);
+}
+
 %}
+
+%option	noyywrap
 
 %Start	Comment
 
@@ -242,14 +272,9 @@ Idf		([A-Za-z][A-Za-z0-9_]*)
 
 %%
 
-/* Language-INdependent Code */
+/* More language-dependent code */
 
 void
 yystart(void) {
 	BEGIN INITIAL;
-}
-
-int
-yywrap(void) {
-	return 1;
 }

@@ -1,9 +1,7 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: tokenarray.h,v 1.3 2012-05-06 09:42:11 Gebruiker Exp $
+	$Id: tokenarray.h,v 1.4 2012-06-08 06:52:17 Gebruiker Exp $
 */
-
-#include	"token.h"
 
 /* Interface for the token storage */
 extern void Init_Token_Array(void);

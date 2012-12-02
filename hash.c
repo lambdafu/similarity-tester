@@ -1,6 +1,6 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: hash.c,v 2.17 2012-06-05 09:58:52 Gebruiker Exp $
+	$Id: hash.c,v 2.18 2012-06-08 06:52:14 Gebruiker Exp $
 */
 
 /*	Text is compared by comparing every substring to all substrings
@@ -39,6 +39,7 @@
 #include	"text.h"
 #include	"Malloc.h"
 #include	"error.h"
+#include	"token.h"
 #include	"language.h"
 #include	"token.h"
 #include	"tokenarray.h"
