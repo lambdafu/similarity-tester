@@ -53,10 +53,10 @@ Best_Run_Size(const Token *str, unsigned int size) {
 
 %option	noyywrap
 
-WordElem	([-a-zA-Z\200-\377])
+WordElem	([-a-zA-Z0-9\200-\377])
 TightWord	({WordElem}+)
 
-NonWordElem	([^-a-zA-Z\200-\377])
+NonWordElem	([^-a-zA-Z0-9\200-\377])
 LooseElem	({WordElem}(" "))
 SpacedWord	({LooseElem}+{WordElem})
 
