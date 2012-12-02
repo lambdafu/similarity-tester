@@ -82,7 +82,7 @@ pass2_txt(struct text *txt) {
 		/* we scan the pos list and the file in parallel */
 
 		/* find the corresponding line */
-		while (pos->ps_tk_cnt > lex_tk_cnt) {	/* was >= ZZ */
+		while (pos->ps_tk_cnt >= lex_tk_cnt) {
 			/* pos does not refer to this line, try the next */
 
 			/* shift the administration */
