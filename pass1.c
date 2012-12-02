@@ -1,6 +1,6 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: pass1.c,v 2.19 2012-06-08 16:04:29 Gebruiker Exp $
+	$Id: pass1.c,v 2.20 2012-09-30 11:55:19 Gebruiker Exp $
 */
 
 #include	<stdio.h>
@@ -73,7 +73,10 @@ Read_Input_Files(int argc, const char *argv[], int round) {
 			if (round == 1 && !is_set_option('T')) {
 				fprint_count(Output_File,
 					     txt->tx_limit - txt->tx_start,
-					     token_name);
+					     token_name
+				);
+				fprintf(Output_File, ", ");
+				fprint_count(Output_File, lex_nl_cnt-1, "line");
 				if (lex_non_ascii_cnt) {
 					fprintf(Output_File, ", ");
 					fprint_count(Output_File,

@@ -1,6 +1,6 @@
 /*	This file is part of the auxiliaries library.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: fname.h,v 1.7 2012-05-04 10:56:47 Gebruiker Exp $
+	$Id: fname.h,v 1.8 2012-06-13 09:59:52 Gebruiker Exp $
 */
 
 /*	Support for UNICODE file names */
@@ -48,7 +48,7 @@
 #define _FNAME_H_
 
 /* lint cannot handle the weird code Windows throws at it, so even under
-   Windows we clain to hve UTF8
+   Windows we clain to have UTF8
 */
 #ifdef	MSDOS
 #define	IS_UTF_16

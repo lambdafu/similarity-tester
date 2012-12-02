@@ -1,6 +1,6 @@
 /*	This file is part of the memory management and leak detector MALLOC.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: Malloc.c,v 1.6 2012-01-25 21:43:05 Gebruiker Exp $
+	$Id: Malloc.c,v 1.7 2012-06-13 09:59:52 Gebruiker Exp $
 */
 
 #include	<stdio.h>
@@ -111,13 +111,10 @@ record_free(char *addr) {
 void
 MemClobber(void *p, size_t size) {
 	unsigned char *s = (unsigned char *)p;
-	unsigned char byte;
 	size_t i;
 
-	byte = 0xaa;
 	for (i = 0; i < size; i++) {
-		s[i] = byte;
-		byte ^= 0xff;
+		s[i] = 0125;		/* 0101 0101 */
 	}
 }
 
@@ -235,7 +232,6 @@ report_actual_leaks(FILE *f) {
 void
 ReportMemoryLeaks(FILE *f) {
 	if (f == 0) f = stderr;
-	if (balance == 0) return;
 	report_actual_leaks(f);
 
 	fprintf(f, "Total memory allocated= %lld", total);

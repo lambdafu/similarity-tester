@@ -38,7 +38,7 @@ InsertAiso(AISO_TYPE v) {
 	struct aiso_node **prev = &list;
 #endif	/* AISO_ITER */
 
-	/*ZZ*/new_node = (struct aiso_node *)TryMalloc(sizeof (struct aiso_node));
+	new_node = (struct aiso_node *)TryMalloc(sizeof (struct aiso_node));
 	if (!new_node) {
 		/* avoid modifying the tree */
 		return 0;

@@ -1,6 +1,6 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: token.c,v 2.10 2012-06-08 16:04:30 Gebruiker Exp $
+	$Id: token.c,v 2.11 2012-09-30 11:55:19 Gebruiker Exp $
 */
 
 /*
@@ -37,7 +37,6 @@ check_and_print(
 #define	is_MTCT_token(tk)	(Token_in_range(tk, 0x0181, 0x019E))
 #define	is_META_token(tk)	(Token_in_range(tk, 0x01A1, 0x01FE))
 #define	is_hashed_token(tk)	(Token_in_range(tk, 0x0200, 0xFFFE))
-/* ZZ */
 
 void
 fprint_token(FILE *ofile, const Token tk) {

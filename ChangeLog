@@ -1,3 +1,30 @@
+2012-09-30  Dick Grune  <Gebruiker@GEBRUIKER-PC>
+
+	* pass2.c (pass2_txt): Boyd Blackwell (Boyd.Blackwell@anu.edu.au)
+	submitted a bug report in which the line numbers (and runs
+	representations) were way off (75 lines). The input files were
+	characterized by extremely long lines, hundreds of tokens (max. 521).
+
+	After 2.5 days of debugging the cause was found: 1. since the mapping
+	from token positions to line numbers is stored as the difference of
+	the token positions from one line to the next (see text.c); 2. since
+	these differences are stored in unsigned chars to save space; 3. since
+	the nl_buff mechanism is switched off when one of these unsigned
+	characters overflow; and since 521 tokens on one line overflowed this
+	unsigned char, the nl_buff mechanism was shut off.
+
+	Since when there is no nl_buff information in pass2, pass2 resorts to
+	rereading the input file calling yylex again; 2. since the preceding
+	file had few runs to find line number to, the preceding file was not
+	read to the end, and the rest remained in flex's buffer, so a portion
+	of the preceding file seemed prefixed to the present file, adding 75
+	lines to it.
+
+	Remedy: flushing flex's buffer explicitly in pass2_txt(); this is
+	simpler than using flex's YY_BUFFER_STATE mechanism.
+
+	Advice: get rid of the nl_buff mechanism; it is no longer relevant.
+
 2012-06-09  Dick Grune
 
 	* lang.h:
@@ -628,5 +655,5 @@
 
 #	This file is part of the software similarity tester SIM.
 #	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-#	$Id: ChangeLog,v 2.19 2012-06-09 08:09:17 Gebruiker Exp $
+#	$Id: ChangeLog,v 2.20 2012-09-30 11:55:19 Gebruiker Exp $
 #

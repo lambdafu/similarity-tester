@@ -1,6 +1,6 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: pass2.c,v 2.19 2012-06-08 16:04:29 Gebruiker Exp $
+	$Id: pass2.c,v 2.20 2012-09-30 11:55:19 Gebruiker Exp $
 */
 
 #include	<stdio.h>
@@ -12,8 +12,9 @@
 #include	"lang.h"
 #include	"pass2.h"
 
+#undef	DB_POS
 #ifdef	DB_POS
-static void db_print_pos_list(const char *, const struct position *);
+static void db_print_pos_list(const char *, const struct text *);
 static void db_print_lex(const char *);
 #endif
 
@@ -29,12 +30,13 @@ Retrieve_Runs(void) {
 	}
 }
 
-/* instantiate sort_pos_list() */
+/* begin instantiate static void sort_pos_list(struct position **) */
 #define	SORT_STRUCT		position
 #define	SORT_NAME		sort_pos_list
 #define	SORT_BEFORE(p1,p2)	((p1)->ps_tk_cnt < (p2)->ps_tk_cnt)
 #define	SORT_NEXT		ps_next
 #include	"sortlist.bdy"
+/* end instantiate sort_pos_list() */
 
 static void
 pass2_txt(struct text *txt) {
@@ -44,27 +46,35 @@ pass2_txt(struct text *txt) {
 	if (!txt->tx_pos)	/* no need to scan the file */
 		return;
 
+	/* Open_Text() initializes lex_nl_cnt and lex_tk_cnt */
 	if (!Open_Text(Second, txt)) {
 		fprintf(stderr, ">>>> File %s disappeared <<<<\n",
 			txt->tx_fname
 		);
 		return;
 	}
-	/* Open_Text() initializes lex_nl_cnt and lex_tk_cnt */
 
+	/* Sort the positions so they can be matched to the file; the linked
+	   list of struct positions snakes through the struct positions in the
+	   struct chunks in the struct runs.
+	*/
 #ifdef	DB_POS
-	db_print_pos_list("before sorting", txt->tx_pos);
+	db_print_pos_list("before sorting", txt);
 #endif	/* DB_POS */
 
 	sort_pos_list(&txt->tx_pos);
 
 #ifdef	DB_POS
-	db_print_pos_list("after sorting", txt->tx_pos);
+	db_print_pos_list("after sorting", txt);
 #endif	/* DB_POS */
 
 #ifdef	DB_NL_BUFF
 	db_print_nl_buff(txt->tx_nl_start, txt->tx_nl_limit);
 #endif	/* DB_NL_BUFF */
+
+#ifdef	DB_POS
+	fprintf(Debug_File, "\n**** DB_PRINT_SCAN of %s ****\n", txt->tx_fname);
+#endif	/* DB_POS */
 
 	old_nl_cnt = 1;
 	pos = txt->tx_pos;
@@ -72,7 +82,7 @@ pass2_txt(struct text *txt) {
 		/* we scan the pos list and the file in parallel */
 
 		/* find the corresponding line */
-		while (pos->ps_tk_cnt >= lex_tk_cnt) {
+		while (pos->ps_tk_cnt > lex_tk_cnt) {	/* was >= ZZ */
 			/* pos does not refer to this line, try the next */
 
 			/* shift the administration */
@@ -104,8 +114,11 @@ pass2_txt(struct text *txt) {
 	}
 
 #ifdef	DB_POS
-	db_print_pos_list("after scanning", txt->tx_pos);
+	db_print_pos_list("after scanning", txt);
 #endif	/* DB_POS */
+
+	/* Flush the flex buffers; it's easier than using YY_BUFFER_STATE. */
+	while (Next_Text_Token_Obtained(Second));
 
 	Close_Text(Second, txt);
 }
@@ -138,9 +151,11 @@ db_print_pos(const struct position *pos) {
 }
 
 static void
-db_print_pos_list(const char *msg, const struct position *pos) {
-	fprintf(Debug_File, "\n**** DB_PRINT_POS_LIST, %s ****\n", msg);
+db_print_pos_list(const char *msg, const struct text *txt) {
+	fprintf(Debug_File, "\n**** DB_PRINT_POS_LIST of %s, %s ****\n",
+		txt->tx_fname, msg);
 
+	const struct position *pos = txt->tx_pos;
 	while (pos) {
 		db_print_pos(pos);
 		pos = pos->ps_next;
@@ -150,8 +165,11 @@ db_print_pos_list(const char *msg, const struct position *pos) {
 
 static void
 db_print_lex(const char *fn) {
-	fprintf(Debug_File, "%s: lex_tk_cnt = %u, lex_nl_cnt = %u\n",
+	fprintf(Debug_File,
+		"%s: lex_tk_cnt = %u, lex_nl_cnt = %u, lex_token = ",
 		fn, lex_tk_cnt, lex_nl_cnt);
+	fprint_token(Debug_File, lex_token);
+	fprintf(Debug_File, "\n");
 }
 
 #endif	/* DB_POS */

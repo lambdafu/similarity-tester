@@ -1,6 +1,6 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: lang.c,v 2.5 2012-06-08 16:04:28 Gebruiker Exp $
+	$Id: lang.c,v 2.6 2012-09-30 11:55:19 Gebruiker Exp $
 */
 
 /*
@@ -19,6 +19,7 @@ FILE *yyin;
 int
 yylex(void) {
 	abort();
+	return 0;
 }
 
 void

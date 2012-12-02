@@ -1,6 +1,6 @@
 /*	This file is part of the memory management and leak detector MALLOC.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: Malloc.h,v 1.3 2012-01-25 21:43:05 Gebruiker Exp $
+	$Id: Malloc.h,v 1.4 2012-06-13 09:59:52 Gebruiker Exp $
 */
 
 #include	<stdio.h>

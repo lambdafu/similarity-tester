@@ -1,6 +1,6 @@
 #	This file is part of the software similarity tester SIM.
 #	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-#	$Id: Makefile,v 2.52 2012-06-09 08:09:17 Gebruiker Exp $
+#	$Id: Makefile,v 2.53 2012-09-30 10:03:36 Gebruiker Exp $
 #
 
 
@@ -11,7 +11,7 @@ help:
 	@echo  'test:           compile sim_c and run a simple test'
 	@echo  ''
 	@echo  'binaries:       create all binaries'
-	@echo  'exes:           create executables in MSDOS
+	@echo  'exes:           create executables in MSDOS'
 	@echo  'install:        install all binaries'
 	@echo  ''
 	@echo  'lint:           lint sim sources'
@@ -27,7 +27,7 @@ help:
 #	=============== including ../lib/sysidf.mk here
 #	This file is part of the auxiliary libraries.
 #	Written by Dick Grune, dick@dickgrune.com
-#	$Id: sysidf.mk,v 1.14 2012-01-25 21:43:06 Gebruiker Exp $
+#	$Id: sysidf.mk,v 1.15 2012-06-13 09:59:52 Gebruiker Exp $
 #
 
 ################################################################
