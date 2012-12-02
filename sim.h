@@ -1,6 +1,6 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: sim.h,v 2.14 2012-06-05 09:58:54 Gebruiker Exp $
+	$Id: sim.h,v 2.15 2012-11-28 20:49:52 Gebruiker Exp $
 */
 
 #include	<stdio.h>
@@ -17,6 +17,8 @@ extern const char *progname;		/* for error reporting */
 
 extern const char *min_run_string;
 extern const char *threshold_string;
+
+extern int is_new_old_separator(const char *s);
 
 /* All output goes through designated files, so we block printf, etc. */
 #undef	printf

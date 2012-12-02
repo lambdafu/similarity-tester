@@ -1,6 +1,6 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: sim.c,v 2.31 2012-06-08 16:04:29 Gebruiker Exp $
+	$Id: sim.c,v 2.32 2012-11-28 20:49:52 Gebruiker Exp $
 */
 
 #include	<stdio.h>
@@ -75,7 +75,7 @@ read_and_compare_files(int argc, const char **argv, int round) {
 	Free_Forward_References();
 }
 
-static int
+int
 is_new_old_separator(const char *s) {
 	return strcmp(s, "/") == 0;
 }
@@ -144,16 +144,6 @@ main(int argc, const char *argv[]) {
 		}
 	}
 
-	if (is_set_option('i')) {
-		if (argc != 0)
-			fatal("-i option conflicts with file arguments");
-		get_new_std_input_args(&argc, &argv);
-	}
-	else if (is_set_option('R')) {
-		get_new_recursive_args(&argc, &argv);
-	}
-	/* (argc, argv) now represents new_file* [ / old_file*] */
-
 	if (is_set_option('P')) {
 		Threshold_Percentage = 1;
 		set_option('p');
@@ -164,23 +154,33 @@ main(int argc, const char *argv[]) {
 		set_option('s');
 	}
 
+	/* Treat the input-determining options */
+	if (is_set_option('i')) {
+		/* read input file names from standard input */
+		if (argc != 0)
+			fatal("-i option conflicts with file arguments");
+		get_new_std_input_args(&argc, &argv);
+	}
+	if (is_set_option('R')) {
+		get_new_recursive_args(&argc, &argv);
+	}
+	/* (argc, argv) now represents new_file* [ / old_file*] */
+
 	/* Here the real work starts */
 	Init_Language();
 
 	if (is_set_option('-')) {
 		/* Just the lexical scan */
-		while (argv[0] && !is_new_old_separator(argv[0])) {
-			Print_Stream(argv[0]);
+		while (argv[0]) {
+			const char *arg = argv[0];
+			if (!is_new_old_separator(arg)) {
+				Print_Stream(arg);
+			}
 			argv++;
 		}
 	}
-	else if (!is_set_option('p')) {
-		/* Runs */
-		read_and_compare_files(argc, argv, 1);
-		Retrieve_Runs();
-		Show_Runs();
-	} else {
-		/* Percentages */
+	else if (is_set_option('p')) {
+		/* Show percentages */
 		/* To compute the percentages fairly, the input files are read
 		   twice, once in command line order, and once with the new
 		   files in reverse order.
@@ -189,6 +189,11 @@ main(int argc, const char *argv[]) {
 		reverse_new_input_files(argc, argv);
 		read_and_compare_files(argc, argv, 2);
 		Show_Percentages();
+	} else {
+		/* Show runs */
+		read_and_compare_files(argc, argv, 1);
+		Retrieve_Runs();
+		Show_Runs();
 	}
 
 	if (is_set_option('M')) {

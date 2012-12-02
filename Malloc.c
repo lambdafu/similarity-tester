@@ -98,9 +98,9 @@ record_free(char *addr) {
 	struct record **oldp = record_pointer_for_address(addr);
 	struct record *old = *oldp;
 
-	if (old == 0) return 0;
+	if (old == 0) return -1;
 
-	*oldp = old->next;
+	*oldp = old->next;/* this loses the struct record; is that a problem? */
 	balance -= old->size;
 
 	return old->size;
@@ -295,7 +295,7 @@ _leak_realloc(int chk, void *addr, size_t size, const char *fname, int l_nmb) {
 	if (	/* we are not reallocating address 0, which is allowed */
 		addr != 0
 	&&	/* the address was never handed out before */
-		old_size == 0
+		old_size == -1
 	) {
 		fprintloc(stderr, fname, l_nmb);
 		fprintf(stderr, ">>>> unallocated block reallocated <<<<\n");
@@ -328,7 +328,7 @@ _leak_free(void *addr, const char *fname, int l_nmb) {
 	size_t old_size = record_free(addr);
 
 	/* we report first, because the free() below may cause a crash */
-	if (old_size == 0) {
+	if (old_size == -1) {
 		fprintloc(stderr, fname, l_nmb);
 		fprintf(stderr, ">>>> unallocated block freed ");
 		fprintf(stderr, "or multiple free of allocated block <<<<\n");

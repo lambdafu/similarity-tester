@@ -1,6 +1,6 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: text.c,v 1.10 2012-06-08 16:04:30 Gebruiker Exp $
+	$Id: text.c,v 1.11 2012-11-28 20:49:52 Gebruiker Exp $
 */
 
 #include	<stdio.h>
@@ -42,7 +42,10 @@ static unsigned int last_nl_cnt;	/* nl counter during pass 2 */
 void
 Init_Text(int nfiles) {
 	/* allocate the array of text descriptors */
-	if (Text) Free(Text);
+	if (Text) {
+		Free(Text);
+		Text = 0;
+	}
 	Number_Of_Texts = nfiles;
 	Text = (struct text *)
 		Malloc((unsigned int)(Number_Of_Texts*sizeof (struct text)));

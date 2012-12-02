@@ -1,4 +1,10 @@
-2012-09-30  Dick Grune  <Gebruiker@GEBRUIKER-PC>
+2012-11-28  Dick Grune
+
+	* newargs.c (recursive_args): Liqun Chen (liqun.chen@hp.com)
+	submitted a bug report noting that the separator / is expanded under
+	the -R option. Corrected.
+
+2012-09-30  Dick Grune
 
 	* pass2.c (pass2_txt): Boyd Blackwell (Boyd.Blackwell@anu.edu.au)
 	submitted a bug report in which the line numbers (and runs
@@ -655,5 +661,5 @@
 
 #	This file is part of the software similarity tester SIM.
 #	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-#	$Id: ChangeLog,v 2.20 2012-09-30 11:55:19 Gebruiker Exp $
+#	$Id: ChangeLog,v 2.21 2012-11-28 20:49:51 Gebruiker Exp $
 #

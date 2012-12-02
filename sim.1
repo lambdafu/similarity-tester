@@ -1,6 +1,6 @@
 .\"	This file is part of the software similarity tester SIM.
 .\"	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-.\"	$Id: sim.1,v 2.21 2012-06-05 14:58:39 Gebruiker Exp $
+.\"	$Id: sim.1,v 2.22 2012-11-28 20:49:52 Gebruiker Exp $
 .\"
 .TH SIM 1 2012/05/02
 .SH NAME
@@ -111,10 +111,10 @@ The names of routines in calls are required to match exactly
 The names of the files to be compared are read from standard input, including
 a possible
 .BR / ;
-the file names need to be separated by layout.
-This allows a very large number of file names to be specified; it differs from
-the @ facility provided by some compilers in that it handles file names only,
-and does not recognize option arguments.
+the file names must be one to a line.
+This option allows a very large number of file names to be specified;
+it differs from the @ facility provided by some compilers in that it handles
+file names only, and does not recognize option arguments.
 .TP
 .B \-M
 Memory usage information is displayed on standard error output.

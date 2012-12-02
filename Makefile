@@ -1,6 +1,6 @@
 #	This file is part of the software similarity tester SIM.
 #	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-#	$Id: Makefile,v 2.53 2012-09-30 10:03:36 Gebruiker Exp $
+#	$Id: Makefile,v 2.54 2012-11-28 20:49:51 Gebruiker Exp $
 #
 
 
@@ -100,11 +100,6 @@ TEST_LANG =	c
 TEST_OPT =	-p
 TEST_INP =	*.l
 
-# -i option test
-TEST_LANG =	c
-TEST_OPT =	-f -r 20 -i <option-i.inp
-TEST_INP =	#
-
 # text test
 TEST_LANG =	text
 TEST_OPT =	-r 5
@@ -129,6 +124,11 @@ TEST_INP =	Kuhl/simc2.c Kuhl/simc1.c
 TEST_LANG =	c
 TEST_OPT =	-r24
 TEST_INP =	pass3.c
+
+# -i option test
+TEST_LANG =	c
+TEST_OPT =	-f -r 20 -R -i <option-i.inp
+TEST_INP =	#
 
 
 #	I N T R O D U C T I O N
@@ -370,11 +370,11 @@ sim.res:	sim_$(TEST_LANG)$(EXE) $(TEST_INP)
 		./sim_$(TEST_LANG)$(EXE) $(TEST_OPT) $(TEST_INP)
 
 stream.res:	sim_$(TEST_LANG)$(EXE) $(TEST_INP)
-		./sim_$(TEST_LANG)$(EXE) -- $(TEST_INP) >$@
+		./sim_$(TEST_LANG)$(EXE) -- $(TEST_OPT) $(TEST_INP) >$@
 		wc $@ $(TEST_INP)
 
 percentages.res:sim_$(TEST_LANG)$(EXE) $(TEST_INP)
-		./sim_$(TEST_LANG)$(EXE) -p $(TEST_INP) $(TEST_INP)
+		./sim_$(TEST_LANG)$(EXE) -p $(TEST_OPT) $(TEST_INP)
 
 TEST_GRB =	stream.res
 

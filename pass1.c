@@ -1,6 +1,6 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: pass1.c,v 2.20 2012-09-30 11:55:19 Gebruiker Exp $
+	$Id: pass1.c,v 2.21 2012-11-28 20:49:52 Gebruiker Exp $
 */
 
 #include	<stdio.h>
@@ -45,7 +45,7 @@ Read_Input_Files(int argc, const char *argv[], int round) {
 		txt->tx_pos = 0;
 		txt->tx_start =
 		txt->tx_limit = Text_Length();
-		if (strcmp(fname, "/") == 0) {
+		if (is_new_old_separator(fname)) {
 			if (round == 1 && !is_set_option('T')) {
 				fprintf(Output_File, "separator\n");
 			}
