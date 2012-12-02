@@ -25,8 +25,8 @@ May_Be_Start_Of_Run(Token ch) {
 	return 0;
 }
 
-unsigned int
-Best_Run_Size(const Token *str, unsigned int size) {
+size_t
+Best_Run_Size(const Token *str, size_t size) {
 	if (str == str || size == size) abort();
 	return 0;
 }

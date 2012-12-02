@@ -74,7 +74,7 @@ Print_Stream(const char *fname) {
 		lex_token = End_Of_Line;
 		do {
 			if (Token_EQ(lex_token, End_Of_Line)) {
-				fprintf(Output_File, "\n%u,%u:",
+				fprintf(Output_File, "\n%zu,%zu:",
 					lex_nl_cnt, lex_tk_cnt
 				);
 			}

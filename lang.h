@@ -23,6 +23,6 @@ extern int yylex(void);
 extern void yystart(void);
 
 extern Token lex_token;			/* token produced, or End_Of_Line */
-extern unsigned int lex_nl_cnt;		/* line count */
-extern unsigned int lex_tk_cnt;		/* token position */
-extern unsigned int lex_non_ascii_cnt;	/* # of non-ASCII chars found */
+extern size_t lex_nl_cnt;		/* line count */
+extern size_t lex_tk_cnt;		/* token position */
+extern size_t lex_non_ascii_cnt;	/* # of non-ASCII chars found */

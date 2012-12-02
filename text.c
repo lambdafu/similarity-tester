@@ -19,25 +19,27 @@ struct text *Text;			/* to be filled in by Malloc() */
 int Number_Of_Texts;			/* number of text files */
 int Number_Of_New_Texts;		/* number of new text files */
 
+typedef unsigned char nl_tk_diff_t;
+
 struct newline {
-	unsigned char nl_tk_diff;	/* token position difference */
+	nl_tk_diff_t nl_tk_diff;	/* token position difference */
 };
 
-#define	NL_INCR		1000		/* increment of newline buffer size */
+#define	NL_START	1024		/* initial newline buffer size */
 
 static struct newline *nl_buff;		/* to be filled by Malloc() */
-static unsigned int nl_size;		/* size of nl_buff[] */
-static unsigned int nl_free;		/* next free position in nl_buff[] */
+static size_t nl_size;			/* size of nl_buff[] */
+static size_t nl_free;			/* next free position in nl_buff[] */
 
-static unsigned int nl_next, nl_limit;	/* nl_buff[] pointers during pass 2 */
+static size_t nl_next, nl_limit;	/* nl_buff[] pointers during pass 2 */
 
 static void store_newline(void);
 static void init_nl_buff(void);
 
 /*							TEXT INTERFACE */
 
-static unsigned int last_tk_cnt;	/* token count at newline */
-static unsigned int last_nl_cnt;	/* nl counter during pass 2 */
+static size_t last_tk_cnt;		/* token count at newline */
+static size_t last_nl_cnt;		/* nl counter during pass 2 */
 
 void
 Init_Text(int nfiles) {
@@ -48,7 +50,7 @@ Init_Text(int nfiles) {
 	}
 	Number_Of_Texts = nfiles;
 	Text = (struct text *)
-		Malloc((unsigned int)(Number_Of_Texts*sizeof (struct text)));
+	  Malloc((size_t)Number_Of_Texts*sizeof (struct text));
 
 	init_nl_buff();
 }
@@ -159,7 +161,7 @@ static void abandon_nl_buff(void);
 static void
 init_nl_buff(void) {
 	/* Allocate the newline buffer, if possible */
-	nl_size = 0 + NL_INCR;
+	nl_size = 0 + NL_START;
 	nl_buff = (struct newline *)TryMalloc(sizeof (struct newline)*nl_size);
 	nl_free = 0;
 }
@@ -170,7 +172,7 @@ store_newline(void) {
 
 	if (nl_free == nl_size) {
 		/* allocated array is full; try to increase its size */
-		unsigned int new_size = nl_size + NL_INCR;
+		size_t new_size = 2 * nl_size;
 		struct newline *new_buff = (struct newline *)TryRealloc(
 			(char *)nl_buff,
 			sizeof (struct newline) * new_size
@@ -187,9 +189,9 @@ store_newline(void) {
 	/* now we are sure there is room enough */
 	{
 		struct newline *nl = &nl_buff[nl_free++];
-		unsigned int tk_diff = lex_tk_cnt - last_tk_cnt;
+		size_t tk_diff = lex_tk_cnt - last_tk_cnt;
 
-		nl->nl_tk_diff = tk_diff;
+		nl->nl_tk_diff = (nl_tk_diff_t) tk_diff;
 		if (nl->nl_tk_diff != tk_diff) {
 			/* tk_diff does not fit in nl_tk_diff */
 			abandon_nl_buff();
@@ -208,8 +210,8 @@ abandon_nl_buff(void) {
 #ifdef	DB_NL_BUFF
 
 void
-db_print_nl_buff(unsigned int start, unsigned int limit) {
-	int i;
+db_print_nl_buff(size_t start, size_t limit) {
+	size_t i;
 
 	fprintf(Debug_File, "\n**** DB_NL_BUFF ****\n");
 	if (!nl_buff) {
@@ -218,19 +220,19 @@ db_print_nl_buff(unsigned int start, unsigned int limit) {
 	}
 
 	if (start > nl_free) {
-		fprintf(Debug_File, ">>>> start (%u) > nl_free (%u)\n\n",
+		fprintf(Debug_File, ">>>> start (%zu) > nl_free (%zu)\n\n",
 			start, nl_free
 		);
 		return;
 	}
 	if (limit > nl_free) {
-		fprintf(Debug_File, ">>>> limit (%u) > nl_free (%u)\n\n",
+		fprintf(Debug_File, ">>>> limit (%zu) > nl_free (%zu)\n\n",
 			limit, nl_free
 		);
 		return;
 	}
 
-	fprintf(Debug_File, "nl_buff: %u entries:\n", nl_free);
+	fprintf(Debug_File, "nl_buff: %zu entries:\n", nl_free);
 	for (i = start; i < limit; i++) {
 		struct newline *nl = &nl_buff[i];
 

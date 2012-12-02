@@ -15,9 +15,9 @@
 #include	"debug.par"
 
 static void compare_one_text(int, int, int);
-static unsigned int lcs(
-	struct text *, unsigned int, struct text **, unsigned int *,
-	unsigned int, unsigned int
+static size_t lcs(
+	struct text *, size_t, struct text **, size_t *,
+	size_t, size_t
 );
 
 /*	The overall structure of the routine Compare_Files() is:
@@ -71,18 +71,18 @@ compare_one_text(
 	int first,			/* first text to be compared to */
 	int limit			/* first text not to be compared to */
 ) {
-	unsigned int i_first = Text[first].tx_start;
-	unsigned int i_limit = Text[limit-1].tx_limit;
+	size_t i_first = Text[first].tx_start;
+	size_t i_limit = Text[limit-1].tx_limit;
 	struct text *txt0 = &Text[n];
-	unsigned int i0 = txt0->tx_start;
+	size_t i0 = txt0->tx_start;
 
 	while (	/* there may be a useful substring */
 		i0 + Min_Run_Size <= txt0->tx_limit
 	) {
 		/* see if there really is one */
 		struct text *txt_best;
-		unsigned int i_best;
-		unsigned int size_best =
+		size_t i_best;
+		size_t size_best =
 			lcs(txt0, i0, &txt_best, &i_best, i_first, i_limit);
 
 		if (size_best) {
@@ -98,13 +98,13 @@ compare_one_text(
 	}
 }
 
-static unsigned int
+static size_t
 lcs(	struct text *txt0,		/* input: starting position */
-	unsigned int i0,
+	size_t i0,
 	struct text **tbp,		/* output: position of best run */
-	unsigned int *ibp,
-	unsigned int i_first,		/* no comparison before this pos. */
-	unsigned int i_limit		/* no comparison after this pos. */
+	size_t *ibp,
+	size_t i_first,		/* no comparison before this pos. */
+	size_t i_limit		/* no comparison after this pos. */
 ) {
 	/*	Finds the longest common substring (not subsequence) in:
 			txt0, starting precisely at i0 and
@@ -113,15 +113,15 @@ lcs(	struct text *txt0,		/* input: starting position */
 		Returns 0 if no common substring is found.
 	*/
 	struct text *txt1 = txt0;
-	unsigned int i1 = i0;
-	unsigned int size_best = 0;
+	size_t i1 = i0;
+	size_t size_best = 0;
 
 	while (	/* there is a next opportunity */
 		(i1 = Forward_Reference(i1))
 	&&	/* it is still in range */
 		i1 < i_limit
 	) {
-		unsigned int min_size= (size_best ? size_best+1 : Min_Run_Size);
+		size_t min_size= (size_best ? size_best+1 : Min_Run_Size);
 
 		if (i1 < i_first) {	/* not in range */
 			continue;
@@ -134,8 +134,8 @@ lcs(	struct text *txt0,		/* input: starting position */
 
 		/* are we looking at something better than we have got? */
 		{	/* comparing backwards */
-			unsigned int j0 = i0 + min_size - 1;
-			unsigned int j1 = i1 + min_size - 1;
+			size_t j0 = i0 + min_size - 1;
+			size_t j1 = i1 + min_size - 1;
 			if (	/* j0 still inside txt0 */
 				j0 < txt0->tx_limit
 			&&	/* j1 still inside txt1 */
@@ -144,7 +144,7 @@ lcs(	struct text *txt0,		/* input: starting position */
 				j0 + min_size <= j1
 			) {
 				/* there is room enough for a match */
-				int cnt = min_size;
+				size_t cnt = min_size;
 
 				/* text matches for at least min_size tokens? */
 				while (	cnt
@@ -159,10 +159,10 @@ lcs(	struct text *txt0,		/* input: starting position */
 		}
 
 		/* yes, we are; how long can we make it? */
-		unsigned int new_size = min_size;
+		size_t new_size = min_size;
 		{	/* extending forwards */
-			unsigned int j0 = i0 + min_size;
-			unsigned int j1 = i1 + min_size;
+			size_t j0 = i0 + min_size;
+			size_t j1 = i1 + min_size;
 
 			while (	/* j0 still inside txt0 */
 				j0 < txt0->tx_limit

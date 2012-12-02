@@ -9,4 +9,4 @@
 
 extern void Make_Forward_References(void);
 extern void Free_Forward_References(void);
-extern unsigned int Forward_Reference(int i);
+extern size_t Forward_Reference(size_t i);

@@ -13,11 +13,11 @@ Token
 idf_in_list(
 	const char *str,
 	const struct idf list[],
-	unsigned int listsize,
+	size_t listsize,
 	Token default_token
 ) {
 	int first = 0;
-	int last = (listsize / sizeof (struct idf)) - 1;
+	int last = (int) (listsize / sizeof (struct idf)) - 1;
 
 	while (first < last) {
 		int middle = (first + last) / 2;
@@ -29,10 +29,10 @@ idf_in_list(
 			last = middle;
 		}
 	}
-	return (strcmp(str, list[first].id_tag) == 0
-	?	list[first].id_tr
-	:	default_token
-	);
+	if (strcmp(str, list[first].id_tag) == 0)
+		return list[first].id_tr;
+	else
+		return default_token;
 }
 
 #define	HASH(h,ch)	(((h) * 8209) + (ch)*613)

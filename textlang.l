@@ -18,9 +18,9 @@
 
 /* General language front end data */
 Token lex_token;
-unsigned int lex_nl_cnt;
-unsigned int lex_tk_cnt;
-unsigned int lex_non_ascii_cnt;
+size_t lex_nl_cnt;
+size_t lex_tk_cnt;
+size_t lex_non_ascii_cnt;
 
 /* Language-dependent code */
 
@@ -43,8 +43,8 @@ May_Be_Start_Of_Run(Token tk) {
 }
 
 /*ARGSUSED*/
-unsigned int
-Best_Run_Size(const Token *str, unsigned int size) {
+size_t
+Best_Run_Size(const Token *str, size_t size) {
 	/* any run size is acceptable */
 	return size;
 }

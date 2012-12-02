@@ -28,7 +28,7 @@
 #include	"Malloc.h"
 
 /* command-line parameters */
-unsigned int Min_Run_Size = DEFAULT_MIN_RUN_SIZE;
+size_t Min_Run_Size = DEFAULT_MIN_RUN_SIZE;
 int Page_Width = DEFAULT_PAGE_WIDTH;
 int Threshold_Percentage = 1;		/* minimum percentage to show */
 FILE *Output_File;
@@ -135,10 +135,12 @@ main(int argc, const char *argv[]) {
 	if (output_name) {
 		Output_File = fopen(output_name, "w");
 		if (Output_File == 0) {
-			char msg[500];
+#define MSG_SIZE 500		  
+			char msg[MSG_SIZE];
 
-			sprintf(msg, "cannot open output file %s",
+			snprintf(msg, MSG_SIZE, "cannot open output file %s",
 				output_name);
+			msg[MSG_SIZE - 1] = '\0';
 			fatal(msg);
 			/*NOTREACHED*/
 		}

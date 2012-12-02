@@ -28,6 +28,6 @@ yystart(void) {
 }
 
 Token lex_token;
-unsigned int lex_nl_cnt;
-unsigned int lex_tk_cnt;
-unsigned int lex_non_ascii_cnt;
+size_t lex_nl_cnt;
+size_t lex_tk_cnt;
+size_t lex_non_ascii_cnt;

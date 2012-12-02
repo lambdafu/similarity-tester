@@ -71,19 +71,19 @@ fprint_token(FILE *ofile, const Token tk) {
 	}
 
 	if (is_CTRL_token(tk)) {
-		if (check_and_print(ofile, "CTRL", ch, 'A', '~', '@')) return;
+		if (check_and_print(ofile, "CTRL", (char) ch, 'A', '~', '@')) return;
 	}
 
 	if (is_NORM_token(tk)) {
-		if (check_and_print(ofile, "NORM", ch, '!', '~', '\0')) return;
+		if (check_and_print(ofile, "NORM", (char) ch, '!', '~', '\0')) return;
 	}
 
 	if (is_MTCT_token(tk)) {
-		if (check_and_print(ofile, "MTCT", ch, 'A', '~', '@')) return;
+		if (check_and_print(ofile, "MTCT", (char) ch, 'A', '~', '@')) return;
 	}
 
 	if (is_META_token(tk)) {
-		if (check_and_print(ofile, "META", ch, '!', '~', '\0')) return;
+		if (check_and_print(ofile, "META", (char) ch, '!', '~', '\0')) return;
 	}
 
 	if (is_hashed_token(tk)) {

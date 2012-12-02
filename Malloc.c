@@ -42,9 +42,9 @@ out_of_memory(const char *fname, int l_nmb, size_t size)  {
    would be too much.
 */
 
-static long long int total = 0;
-static long long int balance = 0;
-static long long int max = 0;
+static unsigned long long int total = 0;
+static unsigned long long int balance = 0;
+static unsigned long long int max = 0;
 
 struct record {
 	struct record *next;
@@ -98,7 +98,7 @@ record_free(char *addr) {
 	struct record **oldp = record_pointer_for_address(addr);
 	struct record *old = *oldp;
 
-	if (old == 0) return -1;
+	if (old == 0) return (size_t) -1;
 
 	*oldp = old->next;/* this loses the struct record; is that a problem? */
 	balance -= old->size;
@@ -124,9 +124,9 @@ struct entry {
 	struct entry *next;
 	const char *fname;
 	int l_nmb;
-	int n_blocks;
+        unsigned int n_blocks;
 	int var_size;	/* all blocks have the same size or not */
-	int size;	/* !var_size: the one size; var_size: sum of sizes */
+        size_t size;	/* !var_size: the one size; var_size: sum of sizes */
 };
 
 static struct entry *
@@ -211,16 +211,16 @@ report_actual_leaks(FILE *f) {
 		);
 		if (e->var_size) {
 			/* e->size is the sum of the sizes */
-			fprintf(f, "%d on average",
+			fprintf(f, "%zd on average",
 				 (e->size + e->n_blocks/2) / e->n_blocks
 			);
 		}
 		else {
 			/* e->size is the single size */
-			fprintf(f, "%d", e->size);
+			fprintf(f, "%zd", e->size);
 		}
 		if (e->n_blocks > 1) {
-			fprintf(f, " = %d",
+			fprintf(f, " = %zd",
 				(e->var_size ? e->size : e->size*e->n_blocks));
 		}
 		fprintf(f, "\n");
@@ -270,7 +270,7 @@ _leak_malloc(int chk, size_t size, const char *fname, int l_nmb) {
 }
 
 void *
-_leak_calloc(int chk, int n, size_t size, const char *fname, int l_nmb) {
+_leak_calloc(int chk, size_t n, size_t size, const char *fname, int l_nmb) {
 	void *res = calloc(n, size);
 
 	if (chk && res == 0) {
@@ -295,7 +295,7 @@ _leak_realloc(int chk, void *addr, size_t size, const char *fname, int l_nmb) {
 	if (	/* we are not reallocating address 0, which is allowed */
 		addr != 0
 	&&	/* the address was never handed out before */
-		old_size == -1
+		old_size == (size_t) -1
 	) {
 		fprintloc(stderr, fname, l_nmb);
 		fprintf(stderr, ">>>> unallocated block reallocated <<<<\n");
@@ -328,7 +328,7 @@ _leak_free(void *addr, const char *fname, int l_nmb) {
 	size_t old_size = record_free(addr);
 
 	/* we report first, because the free() below may cause a crash */
-	if (old_size == -1) {
+	if (old_size == (size_t) -1) {
 		fprintloc(stderr, fname, l_nmb);
 		fprintf(stderr, ">>>> unallocated block freed ");
 		fprintf(stderr, "or multiple free of allocated block <<<<\n");

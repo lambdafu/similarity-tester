@@ -12,8 +12,8 @@
 
 extern void add_run(
 	struct text *txt0,		/* text of first chunk */
-	unsigned int i0,		/* chunk position in Token_Array[] */
+	size_t i0,			/* chunk position in Token_Array[] */
 	struct text *txt1,		/* text of second chunk */
-	unsigned int i1,		/* chunk position in Token_Array[] */
-	unsigned int size		/* number of tokens in the chunk */
+	size_t i1,			/* chunk position in Token_Array[] */
+	size_t size			/* number of tokens in the chunk */
 );

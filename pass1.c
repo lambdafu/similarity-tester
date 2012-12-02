@@ -20,7 +20,7 @@
 static void db_print_text(const struct text *);
 #endif
 
-static void fprint_count(FILE *f, unsigned int cnt, const char *);
+static void fprint_count(FILE *f, size_t cnt, const char *);
 
 void
 Read_Input_Files(int argc, const char *argv[], int round) {
@@ -104,11 +104,11 @@ Read_Input_Files(int argc, const char *argv[], int round) {
 }
 
 static void
-fprint_count(FILE *f, unsigned int cnt, const char *unit) {
+fprint_count(FILE *f, size_t cnt, const char *unit) {
 	/*	Prints a grammatically correct string "%u %s[s]"
 		for units that form their plural by suffixing -s.
 	*/
-	fprintf(f, "%u %s%s", cnt, unit, (cnt == 1 ? "" : "s"));
+	fprintf(f, "%zu %s%s", cnt, unit, (cnt == 1 ? "" : "s"));
 }
 
 #ifdef	DB_TEXT
@@ -116,21 +116,21 @@ fprint_count(FILE *f, unsigned int cnt, const char *unit) {
 static void
 db_print_text(const struct text *txt) {
 	/* prints a text (in compressed form) */
-	int i;
+	size_t i;
 
 	fprintf(Debug_File, "\n\n**** DB_PRINT_TEXT ****\n");
 
-	fprintf(Debug_File, "File \"%s\", %u %ss, ",
+	fprintf(Debug_File, "File \"%s\", %zu %ss, ",
 		txt->tx_fname, txt->tx_limit - txt->tx_start, token_name
 	);
-	fprintf(Debug_File, "txt->tx_start = %u, txt->tx_limit = %u\n",
+	fprintf(Debug_File, "txt->tx_start = %zu, txt->tx_limit = %zu\n",
 		txt->tx_start, txt->tx_limit
 	);
 
 	int BoL = 1;
 	for (i = txt->tx_start; i < txt->tx_limit; i++) {
 		if (BoL) {
-			fprintf(Debug_File, "[%d]:", i);
+			fprintf(Debug_File, "[%zd]:", i);
 			BoL = 0;
 		}
 		fprintf(Debug_File, " ");

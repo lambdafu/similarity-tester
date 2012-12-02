@@ -37,17 +37,17 @@ db_run_info(const char *msg, const struct run *run, int lines_too) {
 	fprintf(Debug_File, "File %s / file %s:\n",
 		cnk0->ch_text->tx_fname, cnk1->ch_text->tx_fname
 	);
-	fprintf(Debug_File, "from %s %u/%u to %u/%u:", token_name,
+	fprintf(Debug_File, "from %s %zu/%zu to %zu/%zu:", token_name,
 		cnk0->ch_first.ps_tk_cnt, cnk1->ch_first.ps_tk_cnt,
 		cnk0->ch_last.ps_tk_cnt, cnk1->ch_last.ps_tk_cnt
 	);
 	if (lines_too) {
-		fprintf(Debug_File, " from lines %u/%u to %u/%u:",
+		fprintf(Debug_File, " from lines %zu/%zu to %zu/%zu:",
 			cnk0->ch_first.ps_nl_cnt, cnk1->ch_first.ps_nl_cnt,
 			cnk0->ch_last.ps_nl_cnt, cnk1->ch_last.ps_nl_cnt
 		);
 	}
-	fprintf(Debug_File, " %u %s%s\n",
+	fprintf(Debug_File, " %zu %s%s\n",
 		run->rn_size, token_name, (run->rn_size == 1 ? "" : "s")
 	);
 }

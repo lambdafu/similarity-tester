@@ -13,8 +13,8 @@
 
 #define	ARGS_INCR	1024
 static char *args;
-static int args_free;
-static int args_size;
+static size_t args_free;
+static size_t args_size;
 
 static void
 init_args(void) {
@@ -27,7 +27,7 @@ static void
 add_char_to_args(char ch) {
 	if (args_free == args_size) {
 		/* allocated array is full; increase its size */
-		int new_size = args_size + ARGS_INCR;
+		size_t new_size = args_size + ARGS_INCR;
 		char *new_args = (char *)Realloc(
 			 (char *)args, sizeof (char *) * new_size
 		);
@@ -58,7 +58,7 @@ std_input(void) {
 		/* omit duplicate layout (= empty name) */
 		if (last_char == '\n' && ch == '\n') continue;
 
-		add_char_to_args(ch);
+		add_char_to_args((char)ch);
 		last_char = ch;
 	}
 	add_char_to_args('\0');
@@ -86,7 +86,7 @@ n_names(const char *s) {
 static const char **
 new_argv(int argc, char *args) {
 	/* converts the layout in args to \0, and constructs an argv list */
-	const char **argv = (const char **)Malloc((argc+1) * sizeof (char *));
+  const char **argv = (const char **)Malloc((size_t)(argc+1) * sizeof (char *));
 	char *p = args;
 	char last_char = '\n';
 

@@ -41,7 +41,7 @@ Retrieve_Runs(void) {
 static void
 pass2_txt(struct text *txt) {
 	struct position *pos;
-	unsigned int old_nl_cnt;
+	size_t old_nl_cnt;
 
 	if (!txt->tx_pos)	/* no need to scan the file */
 		return;
@@ -82,7 +82,7 @@ pass2_txt(struct text *txt) {
 		/* we scan the pos list and the file in parallel */
 
 		/* find the corresponding line */
-		while (pos->ps_tk_cnt >= lex_tk_cnt) {
+		while (pos->ps_tk_cnt >= lex_tk_cnt) {	/* was >= ZZ */
 			/* pos does not refer to this line, try the next */
 
 			/* shift the administration */
@@ -141,7 +141,7 @@ db_print_pos(const struct position *pos) {
 		pos->ps_tk_cnt
 	);
 	fprintf(Debug_File, ", line # = ");
-	if (pos->ps_nl_cnt == -1) {
+	if (pos->ps_nl_cnt == (size_t) -1) {
 		fprintf(Debug_File, "<NOT SET>");
 	}
 	else {

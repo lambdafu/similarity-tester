@@ -6,6 +6,6 @@
 /* Interface for the token storage */
 extern void Init_Token_Array(void);
 extern void Store_Token(Token tk);
-extern unsigned int Text_Length(void);	/* also first free token position */
+extern size_t Text_Length(void);	/* also first free token position */
 extern Token *Token_Array;
 

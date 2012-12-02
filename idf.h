@@ -23,7 +23,7 @@ struct idf {
 extern Token idf_in_list(
 	const char *str,
 	const struct idf list[],
-	unsigned int listsize,
+	size_t listsize,
 	Token default_token
 );
 extern Token idf_hashed(const char *str);

@@ -29,4 +29,4 @@ extern void Init_Algol_Language(
     const Token Openers[], const Token Closers[]
 ); /* note the order of the arguments: Non_Finals ~ Openers, etc. */
 extern int May_Be_Start_Of_Algol_Run(Token ch);
-extern unsigned int Best_Algol_Run_Size(const Token *str, unsigned int size);
+extern size_t Best_Algol_Run_Size(const Token *str, size_t size);

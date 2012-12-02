@@ -22,4 +22,4 @@
 
 extern void Init_Language(void);
 extern int May_Be_Start_Of_Run(Token ch);
-extern unsigned int Best_Run_Size(const Token *str, unsigned int size);
+extern size_t Best_Run_Size(const Token *str, size_t size);

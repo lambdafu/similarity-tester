@@ -22,7 +22,7 @@ struct chunk {
 struct run {				/* a 'run' of coincident tokens */
 	struct chunk rn_chunk0;		/* chunk in left file */
 	struct chunk rn_chunk1;		/* chunk in right file */
-	unsigned int rn_size;
+	size_t rn_size;
 };
 
 #define	AISO_TYPE	struct run *

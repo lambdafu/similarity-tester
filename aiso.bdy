@@ -12,6 +12,7 @@ Description:
 */
 
 #include	<stdio.h>
+#include	<stdint.h>
 
 #include	"Malloc.h"
 
@@ -21,8 +22,8 @@ static struct aiso_node *list;		/* start of linked list */
 #endif	/* AISO_ITER */
 
 /* the policy */
-static int aiso_size = 0;
-static int acc_mark = 1;
+static uint64_t aiso_size = 0;
+static uint64_t acc_mark = 1;
 
 #define	add_entry()	(aiso_size++)
 #define	rem_entry()	(aiso_size--)

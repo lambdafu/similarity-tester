@@ -24,8 +24,8 @@ struct match {
 	struct match *ma_next;
 	const char *ma_fname0;
 	const char *ma_fname1;
-	unsigned int ma_size;		/* # tokens of file 0 found in file 1 */
-	unsigned int ma_size0;		/* # tokens in file 0 */
+	size_t ma_size;			/* # tokens of file 0 found in file 1 */
+	size_t ma_size0;		/* # tokens in file 0 */
 };
 
 static struct match *match_start;	/* to be allocated by new() */
@@ -66,7 +66,7 @@ add_to_percentages(struct run *r) {
 
 static float
 match_percentage(struct match *m) {
-	return (m->ma_size*1.0/m->ma_size0);
+	return (((float)m->ma_size)/((float)m->ma_size0));
 }
 
 /*
@@ -87,7 +87,7 @@ match_percentage(struct match *m) {
 
 static void
 print_perc_info(struct match *m) {
-	int mp = match_percentage(m)*100.0;
+	int mp = (int)(match_percentage(m)*100.0);
 
 	if (mp > 100) {
 		/* this may result from overlapping matches */

@@ -16,21 +16,21 @@
 static void set_chunk(
 	struct chunk *,
 	struct text *,
-	unsigned int,
-	unsigned int
+	size_t,
+	size_t
 );
 
 static void set_pos(
 	struct position *,
 	int,
 	struct text *,
-	unsigned int
+	size_t
 );
 
 void
-add_run(struct text *txt0, unsigned int i0,
-	struct text *txt1, unsigned int i1,
-	unsigned int size
+add_run(struct text *txt0, size_t i0,
+	struct text *txt1, size_t i1,
+	size_t size
 ) {
 	/*	Adds the run of given size to our collection.
 	*/
@@ -54,7 +54,7 @@ add_run(struct text *txt0, unsigned int i0,
 
 static void
 set_chunk(struct chunk *cnk, struct text *txt,
-	  unsigned int start, unsigned int size
+	  size_t start, size_t size
 ) {
 	/*	Fill the chunk *cnk with info about the piece of text
 		in txt starting at start extending over size tokens.
@@ -65,12 +65,12 @@ set_chunk(struct chunk *cnk, struct text *txt,
 }
 
 static void
-set_pos(struct position *pos, int type, struct text *txt, unsigned int start) {
+set_pos(struct position *pos, int type, struct text *txt, size_t start) {
 	/* Fill a single struct position */
 	pos->ps_next = txt->tx_pos;
 	txt->tx_pos = pos;
 
 	pos->ps_type = type;
 	pos->ps_tk_cnt = start;
-	pos->ps_nl_cnt = -1;		/* uninitialized */
+	pos->ps_nl_cnt = (size_t) -1;		/* uninitialized */
 }

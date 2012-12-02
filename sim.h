@@ -5,7 +5,7 @@
 
 #include	<stdio.h>
 
-extern unsigned int Min_Run_Size;
+extern size_t Min_Run_Size;
 extern int Page_Width;
 extern FILE *Output_File;
 extern FILE *Debug_File;
