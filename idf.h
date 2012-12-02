@@ -1,17 +1,16 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: idf.h,v 2.5 1998/02/03 14:28:25 dick Exp $
+	$Id: idf.h,v 2.9 2012-06-05 09:58:53 Gebruiker Exp $
 */
 
 /*	Idf module:
-	TOKEN idf_in_list(char *str, struct idf l[], sizeof l, TOKEN dflt);
+	Token idf_in_list(char *str, struct idf l[], sizeof l, Token dflt);
 		looks up a keyword in a list of keywords l, represented as an
 		array of struct idf, and returns its translation as a token;
 		dflt is returned if the keyword is not found.
-	TOKEN idf_hashed(char *str);
-		returns a token unequal to SKIP or EOL, derived from the str
-		through hashing
-	It is assumed that SKIP will be ignored by the user of this module.
+	Token idf_hashed(char *str);
+		returns a token unequal to No_Token or End_Of_Line, derived
+		from str through hashing
 */
 
 #include	"token.h"
@@ -19,13 +18,14 @@
 /* the struct for keywords etc. */
 struct idf {
 	char *id_tag;	/* an interesting identifier */
-	TOKEN id_tr;	/* with its one-token translation */
+	Token id_tr;	/* with its one-Token translation */
 };
 
-/* special tokens for the idf module */
-#define	SKIP		NORM('\0')
-#define	IDF		NORM('@')
-
 /* public functions */
-extern TOKEN idf_in_list(const char *, const struct idf [], unsigned int, TOKEN);
-extern TOKEN idf_hashed(const char *);
+extern Token idf_in_list(
+	const char *str,
+	const struct idf list[],
+	unsigned int listsize,
+	Token default_token
+);
+extern Token idf_hashed(const char *str);

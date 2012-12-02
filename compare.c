@@ -1,23 +1,25 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: compare.c,v 2.6 2008/09/23 09:07:11 dick Exp $
+	$Id: compare.c,v 2.15 2012-06-05 09:58:52 Gebruiker Exp $
 */
 
 #include	"sim.h"
+#include	"text.h"
 #include	"tokenarray.h"
 #include	"hash.h"
 #include	"language.h"
 #include	"options.h"
 #include	"add_run.h"
 #include	"compare.h"
+#include	"debug.par"
 
-static void compare1text(int, int, int);
+static void compare_one_text(int, int, int);
 static unsigned int lcs(
 	struct text *, unsigned int, struct text **, unsigned int *,
 	unsigned int, unsigned int
 );
 
-/*	The overall structure of the routine Compare() is:
+/*	The overall structure of the routine Compare_Files() is:
 
 	for all new files
 		for all texts it must be compared to
@@ -28,46 +30,53 @@ static unsigned int lcs(
 */
 
 void
-Compare(void) {
+Compare_Files(void) {
 	int n;
 
-	for (n = 0; n < NumberOfNewTexts; n++) {
+	for (	/* all new texts */
+		n = 0; n < Number_Of_New_Texts; n++
+	) {
 		int first =
-			(	option_set('S') ? NumberOfNewTexts + 1
-			:	option_set('s') ? n + 1
-			:	n
+			(	/* if compare to old only */
+				is_set_option('S')
+			?	Number_Of_New_Texts + 1
+			:	/* else if do not compare to self */
+				is_set_option('s')
+				? n + 1
+				/* else */
+				: n
 			);
 
-		if (option_set('e')) {
-			/* from first to NumberOfTexts in steps */
+		if (is_set_option('e')) {
+			/* from first to Number_Of_Texts in steps */
 			int m;
 
-			for (m = first; m < NumberOfTexts; m++) {
-				compare1text(n, m, m+1);
+			for (m = first; m < Number_Of_Texts; m++) {
+				compare_one_text(n, m, m+1);
 			}
 		}
 		else {
-			/* from first to NumberOfTexts in one action */
-			if (first < NumberOfTexts) {
-				compare1text(n, first, NumberOfTexts);
+			/* from first to Number_Of_Texts in one action */
+			if (first < Number_Of_Texts) {
+				compare_one_text(n, first, Number_Of_Texts);
 			}
 		}
 	}
 }
 
 static void
-compare1text(
+compare_one_text(
 	int n,				/* text to be compared */
 	int first,			/* first text to be compared to */
-	int limit			/* limit text in comparison */
+	int limit			/* first text not to be compared to */
 ) {
 	unsigned int i_first = Text[first].tx_start;
 	unsigned int i_limit = Text[limit-1].tx_limit;
 	struct text *txt0 = &Text[n];
 	unsigned int i0 = txt0->tx_start;
 
-	while (	/* there may still be a useful substring */
-		i0 + MinRunSize - 1 < txt0->tx_limit
+	while (	/* there may be a useful substring */
+		i0 + Min_Run_Size <= txt0->tx_limit
 	) {
 		/* see if there really is one */
 		struct text *txt_best;
@@ -96,56 +105,50 @@ lcs(	struct text *txt0,		/* input: starting position */
 	unsigned int i_first,		/* no comparison before this pos. */
 	unsigned int i_limit		/* no comparison after this pos. */
 ) {
-	/*	Finds the longest common substring (not -sequence) in:
+	/*	Finds the longest common substring (not subsequence) in:
 			txt0, starting precisely at i0 and
-			the text between i_first and i_limit.
+			the text from i_first to i_limit-1.
 		Writes the position in tbp and ibp and returns the size.
 		Returns 0 if no common substring is found.
 	*/
 	struct text *txt1 = txt0;
 	unsigned int i1 = i0;
 	unsigned int size_best = 0;
-	unsigned int txt0limit = txt0->tx_limit;
-	unsigned int txt1limit = txt1->tx_limit;
 
 	while (	/* there is a next opportunity */
-		(i1 = ForwardReference(i1))
+		(i1 = Forward_Reference(i1))
 	&&	/* it is still in range */
 		i1 < i_limit
 	) {
-		unsigned int min_size;
-		unsigned int new_size;
-		unsigned int j0;
-		unsigned int j1;
+		unsigned int min_size= (size_best ? size_best+1 : Min_Run_Size);
 
 		if (i1 < i_first) {	/* not in range */
 			continue;
 		}
 
-		/* bump txt1; we may have skipped a text or two */
+		/* bump txt1; we may have to skip a text or two */
 		while (i1 >= txt1->tx_limit) {
 			txt1++;
 		}
-		txt1limit = txt1->tx_limit;
 
-		min_size = (size_best ? size_best+1 : MinRunSize);
 		/* are we looking at something better than we have got? */
-		{
-			j0 = i0 + min_size - 1;
-			j1 = i1 + min_size - 1;
+		{	/* comparing backwards */
+			unsigned int j0 = i0 + min_size - 1;
+			unsigned int j1 = i1 + min_size - 1;
 			if (	/* j0 still inside txt0 */
-				j0 < txt0limit
+				j0 < txt0->tx_limit
 			&&	/* j1 still inside txt1 */
-				j1 < txt1limit
+				j1 < txt1->tx_limit
 			&&	/* j0 and j1 don't overlap */
-				j0 < j1 - min_size + 1
+				j0 + min_size <= j1
 			) {
-				/* there would be room enough */
+				/* there is room enough for a match */
 				int cnt = min_size;
 
-				/* does the text match? */
+				/* text matches for at least min_size tokens? */
 				while (	cnt
-				&&	TOKEN_EQ(TokenArray[j0], TokenArray[j1])
+				&&	Token_EQ(Token_Array[j0],
+						 Token_Array[j1])
 				) {
 					cnt--, j0--, j1--;
 				}
@@ -155,35 +158,34 @@ lcs(	struct text *txt0,		/* input: starting position */
 		}
 
 		/* yes, we are; how long can we make it? */
-		{
-			unsigned int size = min_size;
+		unsigned int new_size = min_size;
+		{	/* extending forwards */
+			unsigned int j0 = i0 + min_size;
+			unsigned int j1 = i1 + min_size;
 
-			j0 = i0 + min_size;
-			j1 = i1 + min_size;
 			while (	/* j0 still inside txt0 */
-				j0 < txt0limit
+				j0 < txt0->tx_limit
 			&&	/* j1 still inside txt1 */
-				j1 < txt1limit
+				j1 < txt1->tx_limit
 			&&	/* j0 and j1 don't overlap */
-				j0 + size < j1
+				j0 + new_size < j1
 			&&	/* tokens are the same */
-				TOKEN_EQ(TokenArray[j0], TokenArray[j1])
+				Token_EQ(Token_Array[j0], Token_Array[j1])
 			) {
-				j0++, j1++, size++;
+				j0++, j1++, new_size++;
 			}
-			new_size = size;
 		}
 
 		/*	offer the run to the Language Department which may
 			reject it or may cut its tail
 		*/
-		new_size = (	MayBeStartOfRun(TokenArray[i0])
-			   ?	CheckRun(&TokenArray[i0], new_size)
+		new_size = (	May_Be_Start_Of_Run(Token_Array[i0])
+			   ?	Best_Run_Size(&Token_Array[i0], new_size)
 			   :	0
 			   );
 
 		if (	/* we still have something acceptable */
-			new_size >= MinRunSize
+			new_size >= Min_Run_Size
 		&&	/* it is better still than what we had */
 			new_size > size_best
 		) {

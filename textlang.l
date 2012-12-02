@@ -1,13 +1,14 @@
 %{
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: textlang.l,v 1.4 2008/03/31 10:35:17 dick Exp $
+	$Id: textlang.l,v 1.10 2012-05-09 08:26:50 Gebruiker Exp $
 */
 
 /*
 	Text front end for the similarity tester.
 */
 
+#include	"sim.h"
 #include	"language.h"
 #include	"token.h"
 #include	"idf.h"
@@ -17,41 +18,56 @@
 /* Language-dependent Code */
 
 void
-InitLanguage(void) {
+Init_Language(void) {
+	token_name = "word";
+	if (!min_run_string) {
+		Min_Run_Size = 8;
+	}
+	if (!threshold_string) {
+		Threshold_Percentage = 20;
+	}
 }
 
 /*ARGSUSED*/
 int
-MayBeStartOfRun(TOKEN tk) {
+May_Be_Start_Of_Run(Token tk) {
 	/* any token is acceptable */
 	return 1;
 }
 
 /*ARGSUSED*/
 unsigned int
-CheckRun(const TOKEN *str, unsigned int size) {
-	/* any run is acceptable */
+Best_Run_Size(const Token *str, unsigned int size) {
+	/* any run size is acceptable */
 	return size;
 }
 
 %}
 
-Layout		([ \t\r\f])
+WordElem	([-a-zA-Z\200-\377])
+TightWord	({WordElem}+)
+
+NonWordElem	([^-a-zA-Z\200-\377])
+LooseElem	({WordElem}(" "))
+SpacedWord	({LooseElem}+{WordElem})
 
 %%
 
-[^ \t\n]+	{			/* a word */
-		/*	a word is defined as anything not containing
-			layout
-		*/
+{TightWord}	{
 		return_tk(idf_hashed(yytext));
 	}
+
+{SpacedWord}/{NonWordElem}	{
+		/* the / operator works at the top level only */
+		return_tk(idf_hashed(yytext));
+	}
+
 
 \n	{				/* count newlines */
 		return_eol();
 	}
 
-{Layout}	{			/* ignore layout */
+.	{			/* ignore the rest */
 	}
 
 %%

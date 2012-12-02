@@ -1,16 +1,16 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: lex.c,v 1.3 1998/02/03 14:28:26 dick Exp $
+	$Id: lex.c,v 1.7 2012-05-08 20:16:11 Gebruiker Exp $
 */
 
-/*	The communication variables, as set by yylex, NextStreamTokenObtained
-	and NextTextTokenObtained.
+/*	The communication variables, as set by yylex, Next_Stream_Token_Obtained
+	and Next_Text_Token_Obtained.
 */
 
 #include	"token.h"
 #include	"lex.h"
 
-TOKEN lex_token;			/* token produced, or EOL */
+Token lex_token;			/* token produced, or End_Of_Line */
 unsigned int lex_nl_cnt;		/* line count */
 unsigned int lex_tk_cnt;		/* token position */
-unsigned int lex_non_ascii_cnt;		/* # of non-ASCII chars found */
+unsigned int lex_non_ascii_cnt;		/* number of non-ASCII chars found */

@@ -1,7 +1,7 @@
 %{
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: clang.l,v 2.11 2008/09/23 09:07:11 dick Exp $
+	$Id: clang.l,v 2.15 2012-06-05 14:58:39 Gebruiker Exp $
 */
 
 /*
@@ -50,7 +50,7 @@ static const struct idf reserved[] = {
 	{"if",		NORM('i')},
 	{"int",		NORM('I')},
 	{"long",	NORM('l')},
-	{"register",	SKIP},
+	{"register",	No_Token},
 	{"return",	NORM('r')},
 	{"short",	NORM('s')},
 	{"sizeof",	NORM('S')},
@@ -60,26 +60,26 @@ static const struct idf reserved[] = {
 	{"typedef",	NORM('t')},
 	{"union",	NORM('u')},
 	{"unsigned",	NORM('U')},
-	{"void",	SKIP},
+	{"void",	No_Token},
 	{"while",	NORM('w')}
 };
 
 /* Special treatment of identifiers */
 
-static TOKEN
+static Token
 idf2token(int hashing) {
-	TOKEN tk;
+	Token tk;
 
 	tk = idf_in_list(yytext, reserved, sizeof reserved, IDF);
-	if (TOKEN_EQ(tk, IDF) && hashing) {
-		/* return a one-token hash code */
+	if (Token_EQ(tk, IDF) && hashing) {
+		/* return a one-Token hash code */
 		tk = idf_hashed(yytext);
 	}
 	return tk;
 }
 
 /* Token sets for module algollike */
-const TOKEN NonFinals[] = {
+const Token Non_Finals[] = {
 	IDF,		/* identifier */
 	NORM('{'),
 	NORM('('),
@@ -108,25 +108,25 @@ const TOKEN NonFinals[] = {
 	NORM('u'),	/* union */
 	NORM('U'),	/* unsigned */
 	NORM('w'),	/* while */
-	NOTOKEN
+	No_Token
 };
-const TOKEN NonInitials[] = {
+const Token Non_Initials[] = {
 	NORM(')'),
 	NORM('}'),
 	NORM(';'),
-	NOTOKEN
+	No_Token
 };
-const TOKEN Openers[] = {
+const Token Openers[] = {
 	NORM('{'),
 	NORM('('),
 	NORM('['),
-	NOTOKEN
+	No_Token
 };
-const TOKEN Closers[] = {
+const Token Closers[] = {
 	NORM('}'),
 	NORM(')'),
 	NORM(']'),
-	NOTOKEN
+	No_Token
 };
 
 %}
@@ -145,6 +145,9 @@ EndComment	("*/")
 SafeComChar	([^*\n])
 UnsafeComChar	("*")
 
+MSComment	("//"{MSCommentChar}*)
+MSCommentChar	([^\n])
+
 Digit		([0-9a-fA-F])
 Idf		([A-Za-z][A-Za-z0-9_]*)
 
@@ -155,7 +158,7 @@ Idf		([A-Za-z][A-Za-z0-9_]*)
 			(although one can be written), for two reasons.
 			The matched string might overflow lex-internal buffers
 			like yysbuf and yytext; and the pattern would be very
-			complicated and overtax lex.
+			complicated and impair maintainability.
 			So we break up the string into safe chunks and keep
 			track of where we are in a start condition <Comment>.
 		*/
@@ -174,6 +177,9 @@ Idf		([A-Za-z][A-Za-z0-9_]*)
 
 <Comment>{EndComment}	{		/* end-of-comment */
 		BEGIN INITIAL;
+	}
+
+{MSComment}	{			/* ignore */
 	}
 
 \"{StrChar}*\"	{			/* strings */
@@ -202,21 +208,21 @@ Idf		([A-Za-z][A-Za-z0-9_]*)
 	}
 
 {Idf}/"("	{			/* identifier in front of ( */
-		TOKEN tk;
+		Token tk;
 
-		tk = idf2token(option_set('F'));
-		if (!TOKEN_EQ(tk, SKIP)) return_tk(tk);
+		tk = idf2token(is_set_option('F'));
+		if (!Token_EQ(tk, No_Token)) return_tk(tk);
 	}
 
 {Idf}	{				/* identifier */
-		TOKEN tk;
+		Token tk;
 
 		tk = idf2token(0 /* no hashing */);
-		if (!TOKEN_EQ(tk, SKIP)) return_tk(tk);
+		if (!Token_EQ(tk, No_Token)) return_tk(tk);
 	}
 
 \;	{				/* semicolon, conditionally ignored */
-		if (option_set('f')) return_ch(yytext[0]);
+		if (is_set_option('f')) return_ch(yytext[0]);
 	}
 
 \n	{				/* count newlines */

@@ -1,9 +1,11 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: add_run.c,v 2.7 2008/09/23 09:07:11 dick Exp $
+	$Id: add_run.c,v 2.12 2012-06-05 09:58:52 Gebruiker Exp $
 */
 
 #include	"sim.h"
+#include	"debug.par"
+#include	"text.h"
 #include	"runs.h"
 #include	"percentages.h"
 #include	"Malloc.h"
@@ -34,11 +36,15 @@ add_run(struct text *txt0, unsigned int i0,
 	*/
 	struct run *r = new(struct run);
 
-	set_chunk(&r->rn_cn0, txt0, i0 - txt0->tx_start, size);
-	set_chunk(&r->rn_cn1, txt1, i1 - txt1->tx_start, size);
+	set_chunk(&r->rn_chunk0, txt0, i0 - txt0->tx_start, size);
+	set_chunk(&r->rn_chunk1, txt1, i1 - txt1->tx_start, size);
 	r->rn_size = size;
 
-	if (option_set('p')) {
+#ifdef	DB_RUN
+	db_run_info("Added", r, 0);
+#endif	/* DB_RUN */
+
+	if (is_set_option('p')) {
 		add_to_percentages(r);
 	}
 	else {

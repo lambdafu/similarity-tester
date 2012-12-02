@@ -1,33 +1,26 @@
 #	This file is part of the software similarity tester SIM.
 #	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-#	$Id: Makefile,v 2.22 2008/09/23 09:07:10 dick Exp $
+#	$Id: Makefile,v 2.49 2012-06-05 14:58:38 Gebruiker Exp $
 #
 
 
 #	E N T R Y   P O I N T S
-test_sim:
 
 help:
-	@echo 'Entry points:'
-	@echo 'test_sim:	compile sim_c and run a simple test (default)'
-	@echo ''
-	@echo 'all:		create all binaries'
-	@echo 'sim_X(.exe):	create specific binary for language X'
-	@echo 'install_all:	install all binaries'
-	@echo 'install.sim_X:	install specific binary for language X'
-	@echo 'where X is one of c, java, pasc, m2, lisp, mira, text'
-	@echo ''
-	@echo 'lint:		lint sim_c sources'
-	@echo 'lint.all:	lint all sim sources'
-	@echo 'simsim:		run sim on the sim sources'
-	@echo ''
-	@echo 'simsrc.shr:	create sources shar file'
-	@echo 'simsrc.zip:	create sources zip file'
-	@echo 'depend:		update dependencies in Makefile'
-	@echo 'clean:		remove created files'
-	@echo ''
-	@echo 'sim_exes:	create DOS executables in MSDOS; set date; make clean'
-	@echo 'simexe.zip:	create DOS executables package in UNIX'
+	@echo  'Entry points:'
+	@echo  'test:           compile sim_c and run a simple test'
+	@echo  ''
+	@echo  'binaries:       create all binaries'
+	@echo  'install_all:    install all binaries'
+	@echo  ''
+	@echo  'lint:           lint sim_c sources'
+	@echo  'lint.all:       lint all sim sources'
+	@echo  'simsim:         run sim on the sim sources'
+	@echo  ''
+	@echo  'depend:         update dependencies in Makefile'
+	@echo  'clean:          remove created files'
+	@echo  ''
+	@echo  'sim_exes:       create DOS executables in MSDOS; set date; make clean'
 
 
 #
@@ -37,51 +30,114 @@ help:
 # System dependencies
 #	=============== including ../lib/sysidf.mk here
 #	This file is part of the auxiliary libraries.
-#	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-#	$Id: sysidf.mk,v 1.4 2008/02/20 20:46:47 dick Exp $
+#	Written by Dick Grune, dick@dickgrune.com
+#	$Id: sysidf.mk,v 1.14 2012-01-25 21:43:06 Gebruiker Exp $
 #
+
+################################################################
+# For UNIX|Linux
+
+SYSTEM =	UNIX
+SUBSYSTEM =	SOLARIS
 
 # Locations
 DIR =		/home/dick
-BINDIR =	$(DIR)/bin.`arch`
+BINDIR =	$(DIR)/bin.`$(DIR)/bin/arch`
 MAN1DIR =	$(DIR)/man/man1
-DICTDIR =	$(DIR)/lib
+WWWDIR =	$(DIR)/www
 
-# Which Operating System
-
-SYSTEM =	UNIX
+# Commands
+COPY =		cp -p
 EXE =		#
+LEX =		flex
 LN =		ln
-ZIP =		zip
+ZIP =		zip -o
+VIEWDVI =	gs
+
+################################################################
+# For MSDOS + MinGW
+
+SYSTEM =	MSDOS
+SUBSYSTEM =	MinGW
+
+# Locations
+DIR =		C:/BIN
+BINDIR =	C:/BIN
+MAN1DIR =	C:/BIN
+WWWDIR =	~/Documents/www
+
+# Commands (cp required, since xcopy cannot handle forward slashes)
+COPY =		cp -p
+EXE =		.exe
+LEX =		flex
+LN =		ln
+ZIP =		zip -o
+VIEWDVI =	yap
+
+################################################################
+# General, compiling:
+CC =		gcc -D$(SYSTEM) -D$(SUBSYSTEM)
+LINT =		lint -ansi -D$(SYSTEM) -D$(SUBSYSTEM)
+LINTFLAGS =	-xh
+
+# General, manual:
+.SUFFIXES:	.1 .3 .pdf
+
+.1.pdf:
+		man2pdf $<
+
+.3.pdf:
+		man2pdf $<
+
 #	=============== end of ../lib/sysidf.mk
 
 # Compiler Options
-C_OPT =		-O4#			# C optimization level
-LIBFLAGS =	#			# library flags
-LINTFLAGS =	-h#			# lint flags
+MEMORY =	-DMEMLEAK -DMEMCLOBBER
+CFLAGS =	$(MEMORY) -O4
+LIBFLAGS =	#
+LINTFLAGS =	$(MEMORY) -h# -X
 
-# Compilers: GNU + DJGPP v2
-CC =		gcc
-CFLAGS =	-pedantic -D$(SYSTEM) $(C_OPT) $(TESTTOKEN)
-LINT =		lint -ansi -D$(SYSTEM)
-
+# Debugging
+CFLAGS +=	-DDEBUG
+DEBUG_C =	debug.c
+DEBUG_O =	debug.o
 
 #	T E S T   P A R A M E T E R S
 
-# Parameters for two simple test runs, sim.res and stream.res:
-TEST_LANG =	c#			# to test sim_X for language X
-
 # percentage test
-TEST_OPT =	-p#			# options to sim_X
-TEST_INP =	*.l#			# guinea pig input
+TEST_LANG =	c
+TEST_OPT =	-p
+TEST_INP =	*.l
 
 # -i option test
-TEST_OPT =	-f -r 20 -i <option-i.inp# options to sim_X
-TEST_INP =	#			# guinea pig input
+TEST_LANG =	c
+TEST_OPT =	-f -r 20 -i <option-i.inp
+TEST_INP =	#
+
+# text test
+TEST_LANG =	text
+TEST_OPT =	-r 5
+TEST_INP =	test_seplet
+
+# Rumen Stevanov test
+TEST_LANG =	text
+TEST_OPT =	-p
+TEST_INP =	Rumen_Stefanov/new/*.txt
+
+# Kuhl test 1
+TEST_LANG =	c
+TEST_OPT =	-p
+TEST_INP =	Kuhl/simc1.c Kuhl/simc2.c
+
+# Kuhl test 2
+TEST_LANG =	c
+TEST_OPT =	-p
+TEST_INP =	Kuhl/simc2.c Kuhl/simc1.c
 
 # regular test
-TEST_OPT =	-f -r 20#		# options to sim_X
-TEST_INP =	pass3.c#		# guinea pig input
+TEST_LANG =	c
+TEST_OPT =	-r24
+TEST_INP =	pass3.c
 
 
 #	I N T R O D U C T I O N
@@ -98,7 +154,7 @@ TEST_INP =	pass3.c#		# guinea pig input
 #	(This is a feeble attempt at software-engineering a Makefile.)
 #
 
-test_sim:	sim.res stream.res percentages.res	# three simple tests
+test:		sim.res stream.res percentages.res	# three simple tests
 
 
 #	B I N A R I E S
@@ -113,9 +169,12 @@ all:		$(BINARIES)
 #	A U X I L I A R Y   M O D U L E S
 
 # Common modules:
-COM_CFS =	token.c lex.c stream.c text.c tokenarray.c error.c Malloc.c
-COM_OBJ =	token.o lex.o stream.o text.o tokenarray.o error.o Malloc.o
-COM_SRC =	token.h lex.h stream.h text.h tokenarray.h error.h Malloc.h \
+COM_CFS =	token.c lex.c stream.c text.c tokenarray.c error.c $(DEBUG_C) \
+		ForEachFile.c fname.c Malloc.c
+COM_OBJ =	token.o lex.o stream.o text.o tokenarray.o error.o $(DEBUG_O) \
+		ForEachFile.o fname.o Malloc.o
+COM_SRC =	token.h lex.h stream.h text.h tokenarray.h error.h \
+		ForEachFile.h fname.h Malloc.h \
 		lang.h language.h \
 		sortlist.spc sortlist.bdy system.par $(COM_CFS)
 COM_FLS =	$(COM_SRC)
@@ -172,9 +231,7 @@ SIM_C_OBJ =	$(SIM_OBJ) $(ALG_OBJ) $(CLANG_OBJ)
 sim_c$(EXE):	$(SIM_C_OBJ)
 		$(CC) $(SIM_C_OBJ) -o $@
 
-SIM_C_GRB =	clang.c sim_c
-
-install.sim_c:	$(BINDIR)/sim_c$(EXE) $(MANDIR)/sim.1
+SIM_GRB +=	clang.c sim_c
 
 $(BINDIR)/sim_c$(EXE):	sim_c$(EXE)
 		$(COPY) sim_c$(EXE) $@
@@ -194,9 +251,7 @@ SIM_JAVA_OBJ =	$(SIM_OBJ) $(ALG_OBJ) $(JAVALANG_OBJ)
 sim_java$(EXE):	$(SIM_JAVA_OBJ)
 		$(CC) $(SIM_JAVA_OBJ) -o $@
 
-SIM_JAVA_GRB =	javalang.c sim_java
-
-install.sim_java:	$(BINDIR)/sim_java$(EXE) $(MANDIR)/sim.1
+SIM_GRB +=	javalang.c sim_java
 
 $(BINDIR)/sim_java$(EXE):	sim_java$(EXE)
 		$(COPY) sim_java$(EXE) $@
@@ -216,9 +271,7 @@ SIM_PASC_OBJ =	$(SIM_OBJ) $(ALG_OBJ) $(PASCLANG_OBJ)
 sim_pasc$(EXE):	$(SIM_PASC_OBJ)
 		$(CC) $(SIM_PASC_OBJ) -o $@
 
-SIM_PASC_GRB =	pascallang.c sim_pasc
-
-install.sim_pasc:	$(BINDIR)/sim_pasc$(EXE) $(MANDIR)/sim.1
+SIM_GRB +=	pascallang.c sim_pasc
 
 $(BINDIR)/sim_pasc$(EXE):	sim_pasc$(EXE)
 		$(COPY) sim_pasc$(EXE) $@
@@ -238,9 +291,7 @@ SIM_M2_OBJ =	$(SIM_OBJ) $(ALG_OBJ) $(M2LANG_OBJ)
 sim_m2$(EXE):	$(SIM_M2_OBJ)
 		$(CC) $(SIM_M2_OBJ) -o $@
 
-SIM_M2_GRB =	m2lang.c sim_m2
-
-install.sim_m2:	$(BINDIR)/sim_m2$(EXE) $(MANDIR)/sim.1
+SIM_GRB +=	m2lang.c sim_m2
 
 $(BINDIR)/sim_m2$(EXE):	sim_m2$(EXE)
 		$(COPY) sim_m2$(EXE) $@
@@ -260,9 +311,7 @@ SIM_LISP_OBJ =	$(SIM_OBJ) $(ALG_OBJ) $(LISPLANG_OBJ)
 sim_lisp$(EXE):	$(SIM_LISP_OBJ)
 		$(CC) $(SIM_LISP_OBJ) -o $@
 
-SIM_LISP_GRB =	lisplang.c sim_lisp
-
-install.sim_lisp:	$(BINDIR)/sim_lisp$(EXE) $(MANDIR)/sim.1
+SIM_GRB +=	lisplang.c sim_lisp
 
 $(BINDIR)/sim_lisp$(EXE):	sim_lisp$(EXE)
 		$(COPY) sim_lisp$(EXE) $@
@@ -282,9 +331,7 @@ SIM_MIRA_OBJ =	$(SIM_OBJ) $(ALG_OBJ) $(MIRALANG_OBJ)
 sim_mira$(EXE):	$(SIM_MIRA_OBJ)
 		$(CC) $(SIM_MIRA_OBJ) -o $@
 
-SIM_MIRA_GRB =	miralang.c sim_mira
-
-install.sim_mira:	$(BINDIR)/sim_mira$(EXE) $(MANDIR)/sim.1
+SIM_GRB +=	miralang.c sim_mira
 
 $(BINDIR)/sim_mira$(EXE):	sim_mira$(EXE)
 		$(COPY) sim_mira$(EXE) $@
@@ -304,12 +351,14 @@ SIM_TEXT_OBJ =	$(SIM_OBJ) $(TEXTLANG_OBJ)
 sim_text$(EXE):	$(SIM_TEXT_OBJ)
 		$(CC) $(SIM_TEXT_OBJ) -o $@
 
-SIM_TEXT_GRB =	textlang.c sim_text
-
-install.sim_text:	$(BINDIR)/sim_text$(EXE) $(MANDIR)/sim.1
+SIM_GRB +=	textlang.c sim_text
 
 $(BINDIR)/sim_text$(EXE):	sim_text$(EXE)
 		$(COPY) sim_text$(EXE) $@
+
+
+
+
 
 
 
@@ -339,8 +388,8 @@ simsim:		sim_c$(EXE) $(SRC)
 		./sim_c$(EXE) -fr 20 $(SRC)
 
 # Lint
-lint:		$(SIM_SRC)
-		$(LINT) $(LINTFLAGS) $(SIM_C_CFS) | grep -v yy
+lint:		$(SIM_SRC) $(ALG_SRC)
+		$(LINT) $(LINTFLAGS) $(SIM_CFS) $(ALG_CFS) | grep -v yy
 
 lint.all:	$(SIM_C_CFS) $(SIM_JAVA_CFS) $(SIM_PASC_CFS) $(SIM_M2_CFS) \
 		$(SIM_LISP_CFS) $(SIM_MIRA_CFS) $(SIM_TEXT_CFS)
@@ -369,220 +418,78 @@ FLS =		$(SIM_FLS) $(ALG_FLS) \
 		$(CLANG_FLS) $(JAVALANG_FLS) $(PASCLANG_FLS) $(M2LANG_FLS) \
 		$(LISPLANG_FLS) $(MIRALANG_FLS) $(TEXTLANG_FLS) \
 		sysidf.mk sysidf.msdos sysidf.unix
-DOC =		READ_ME READ.ME README.1st sim.1 sim.txt sim.html \
+DOC =		README README.1st sim.1 sim.txt sim.html \
 		ChangeLog Answers TechnReport
 
 ALL_FLS =	Makefile $(FLS) $(DOC)
 
-# Create .EXE archive for MSDOS
+# Create .EXE for MSDOS
 SIM_EXES =	sim_c.exe sim_java.exe sim_pasc.exe sim_m2.exe \
 		sim_lisp.exe sim_mira.exe sim_text.exe
-DOSZIP =	READ.ME sim.txt $(SIM_EXES)
 sim_exes:	$(SIM_EXES)
-
-simexe.zip:	$(DOSZIP)
-		$(ZIP) $@ $(DOSZIP)
-
-DOS_GRB =	simexe.zip
 
 # Install and clean scripts
 install_all:	install			# just a synonym
-install:	install.sim_c install.sim_java install.sim_pasc \
-		install.sim_m2 install.sim_lisp install.sim_mira \
-		install.sim_text
+install:	$(MAN1DIR)/sim.1 \
+		$(BINDIR)/sim_c$(EXE) \
+		$(BINDIR)/sim_java$(EXE) \
+		$(BINDIR)/sim_pasc$(EXE) \
+		$(BINDIR)/sim_m2$(EXE) \
+		$(BINDIR)/sim_lisp$(EXE) \
+		$(BINDIR)/sim_mira$(EXE) \
+		$(BINDIR)/sim_text$(EXE)
 
-$(MANDIR)/sim.1:	sim.1
+
+$(MAN1DIR)/sim.1:	sim.1
 		$(COPY) sim.1 $@
 
-simsrc.shr:	$(ALL_FLS)
-		shar $(ALL_FLS) >$@
-
-simsrc.zip:	$(ALL_FLS)
-		$(ZIP) $@ $(ALL_FLS)
-
-sim.txt:	sim.1
-		nroff -man sim.1 | sed 's/.//g' >$@
-
-sim.pdf:	sim.1
-		troff -man sim.1 | devps | ps2pdf -sPAPERSIZE=a4 - $@
-
-INSTALL_GRB =	simsrc.shr simsrc.zip sim.txt sim.pdf
-
-depend:		$(CFS)
-		makedepend -w 1 -Dlint $(CFS)
 
 .PHONY:		clean fresh
 clean:
 		-rm -f *.o
-		-rm -f $(SIM_C_GRB)
-		-rm -f $(SIM_JAVA_GRB)
-		-rm -f $(SIM_PASC_GRB)
-		-rm -f $(SIM_M2_GRB)
-		-rm -f $(SIM_LISP_GRB)
-		-rm -f $(SIM_MIRA_GRB)
-		-rm -f $(SIM_TEXT_GRB)
+		-rm -f $(SIM_GRB)
 		-rm -f $(TEST_GRB)
-		-rm -f $(INSTALL_GRB)
 		-rm -f a.out a.exe sim.txt core mon.out
 
 fresh:		clean
-		-rm -f $(DOS_GRB)
 		-rm -f *.exe
 
 #	D E P E N D E N C I E S
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
-
-token.o: token.h
-lex.o: token.h
-lex.o: lex.h
-stream.o: system.par
-stream.o: token.h
-stream.o: lex.h
-stream.o: lang.h
-stream.o: stream.h
-text.o: debug.par
-text.o: sim.h
-text.o: token.h
-text.o: stream.h
-text.o: lex.h
-text.o: options.h
-text.o: error.h
-text.o: text.h
-tokenarray.o: error.h
-tokenarray.o: lex.h
-tokenarray.o: token.h
-tokenarray.o: tokenarray.h
-error.o: sim.h
-error.o: error.h
-idf.o: system.par
-idf.o: token.h
-idf.o: idf.h
-runs.o: sim.h
-runs.o: runs.h
-runs.o: aiso.spc
-runs.o: aiso.bdy
-percentages.o: sim.h
-percentages.o: runs.h
-percentages.o: aiso.spc
-percentages.o: error.h
-percentages.o: Malloc.h
-percentages.o: percentages.h
-percentages.o: sortlist.bdy
-sim.o: settings.par
-sim.o: sim.h
-sim.o: options.h
-sim.o: language.h
-sim.o: token.h
-sim.o: error.h
-sim.o: hash.h
-sim.o: compare.h
-sim.o: pass1.h
-sim.o: pass2.h
-sim.o: pass3.h
-sim.o: stream.h
-sim.o: lex.h
-options.o: options.h
-pass1.o: debug.par
-pass1.o: sim.h
-pass1.o: text.h
-pass1.o: tokenarray.h
-pass1.o: token.h
-pass1.o: lex.h
-pass1.o: error.h
-pass1.o: pass1.h
-hash.o: system.par
-hash.o: debug.par
-hash.o: sim.h
-hash.o: error.h
-hash.o: language.h
-hash.o: token.h
-hash.o: tokenarray.h
-hash.o: options.h
-hash.o: hash.h
-compare.o: sim.h
-compare.o: tokenarray.h
-compare.o: token.h
-compare.o: hash.h
-compare.o: language.h
-compare.o: options.h
-compare.o: add_run.h
-compare.o: compare.h
-add_run.o: sim.h
-add_run.o: runs.h
-add_run.o: aiso.spc
-add_run.o: percentages.h
-add_run.o: options.h
-add_run.o: error.h
-add_run.o: add_run.h
-pass2.o: debug.par
-pass2.o: sim.h
-pass2.o: text.h
-pass2.o: lex.h
-pass2.o: token.h
-pass2.o: pass2.h
-pass2.o: sortlist.bdy
-pass3.o: system.par
-pass3.o: debug.par
-pass3.o: sim.h
-pass3.o: runs.h
-pass3.o: aiso.spc
-pass3.o: error.h
-pass3.o: options.h
-pass3.o: pass3.h
-pass3.o: percentages.h
-pass3.o: tokenarray.h
-pass3.o: token.h
-algollike.o: options.h
-algollike.o: token.h
-algollike.o: algollike.h
-algollike.o: language.h
-clang.o: options.h
-clang.o: algollike.h
-clang.o: language.h
-clang.o: token.h
-clang.o: idf.h
-clang.o: lex.h
-clang.o: lang.h
-javalang.o: options.h
-javalang.o: algollike.h
-javalang.o: language.h
-javalang.o: token.h
-javalang.o: idf.h
-javalang.o: lex.h
-javalang.o: lang.h
-pascallang.o: options.h
-pascallang.o: algollike.h
-pascallang.o: language.h
-pascallang.o: token.h
-pascallang.o: idf.h
-pascallang.o: lex.h
-pascallang.o: lang.h
-m2lang.o: options.h
-m2lang.o: algollike.h
-m2lang.o: language.h
-m2lang.o: token.h
-m2lang.o: idf.h
-m2lang.o: lex.h
-m2lang.o: lang.h
-lisplang.o: language.h
-lisplang.o: token.h
-lisplang.o: lex.h
-lisplang.o: lang.h
-lisplang.o: idf.h
-miralang.o: language.h
-miralang.o: token.h
-miralang.o: lex.h
-miralang.o: lang.h
-miralang.o: idf.h
-textlang.o: language.h
-textlang.o: token.h
-textlang.o: idf.h
-textlang.o: lex.h
-textlang.o: lang.h
-text.o: Malloc.h
-tokenarray.o: Malloc.h
-percentages.o: Malloc.h
-hash.o: Malloc.h
-add_run.o: Malloc.h
-pass3.o: Malloc.h
+ForEachFile.o: ForEachFile.c ForEachFile.h fname.h
+Malloc.o: Malloc.c Malloc.h
+add_run.o: add_run.c sim.h debug.par runs.h aiso.spc percentages.h \
+ Malloc.h options.h error.h add_run.h
+algollike.o: algollike.c options.h token.h algollike.h language.h
+clang.o: clang.c options.h algollike.h language.h token.h idf.h lex.h \
+ lang.h
+compare.o: compare.c sim.h tokenarray.h token.h hash.h language.h \
+ options.h add_run.h compare.h debug.par
+count_sim_dup.o: count_sim_dup.c
+debug.o: debug.c debug.h
+error.o: error.c sim.h error.h
+fname.o: fname.c fname.h
+hash.o: hash.c system.par debug.par sim.h Malloc.h error.h language.h \
+ token.h tokenarray.h options.h hash.h
+idf.o: idf.c system.par token.h idf.h
+lex.o: lex.c token.h lex.h
+newargs.o: newargs.c ForEachFile.h fname.h Malloc.h error.h
+options.o: options.c options.h
+pass1.o: pass1.c debug.par sim.h text.h tokenarray.h token.h lex.h \
+ error.h options.h pass1.h
+pass2.o: pass2.c debug.par sim.h text.h lex.h token.h pass2.h \
+ sortlist.bdy
+pass3.o: pass3.c system.par debug.par sim.h runs.h aiso.spc Malloc.h \
+ error.h options.h pass3.h percentages.h
+percentages.o: percentages.c sim.h runs.h aiso.spc options.h Malloc.h \
+ error.h percentages.h sortlist.bdy
+runs.o: runs.c sim.h runs.h aiso.spc debug.par aiso.bdy Malloc.h
+sim.o: sim.c system.par settings.par sim.h options.h newargs.h language.h \
+ token.h tokenarray.h error.h hash.h compare.h pass1.h pass2.h pass3.h \
+ stream.h lex.h Malloc.h
+stream.o: stream.c system.par token.h lex.h lang.h stream.h
+text.o: text.c debug.par sim.h token.h stream.h lex.h Malloc.h options.h \
+ error.h text.h
+token.o: token.c token.h
+tokenarray.o: tokenarray.c error.h lex.h token.h Malloc.h tokenarray.h

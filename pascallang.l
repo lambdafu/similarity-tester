@@ -1,12 +1,13 @@
 %{
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: pascallang.l,v 2.11 2008/09/23 09:07:12 dick Exp $
+	$Id: pascallang.l,v 2.14 2012-05-06 15:37:19 Gebruiker Exp $
 */
 
 /*
 	PASCAL language front end for the similarity tester.
 	Author:	Maarten van der Meulen <maarten@cs.vu.nl>
+	Date: May 1986
 */
 
 #include	"options.h"
@@ -54,15 +55,15 @@ static const struct idf reserved[] = {
 	{"mod",		NORM('%')},
 	{"nil",		NORM('n')},
 	{"not",		NORM('!')},
-	{"of",		SKIP},
+	{"of",		No_Token},
 	{"or",		NORM('|')},
 	{"packed",	NORM('P')},
 	{"procedure",	NORM('p')},
-	{"program",	SKIP},
+	{"program",	No_Token},
 	{"record",	NORM('r')},
 	{"repeat",	NORM('R')},
 	{"set",		NORM('s')},
-	{"then",	SKIP},
+	{"then",	No_Token},
 	{"to",		NORM('t')},
 	{"type",	NORM('T')},
 	{"until",	NORM('u')},
@@ -87,21 +88,21 @@ lower_case(char *str) {
 	}
 }
 
-static TOKEN
+static Token
 idf2token(int hashing) {
-	TOKEN tk;
+	Token tk;
 
 	lower_case(yytext);
 	tk = idf_in_list(yytext, reserved, sizeof reserved, IDF);
-	if (TOKEN_EQ(tk, IDF) && hashing) {
-		/* return a one-token hash code */
+	if (Token_EQ(tk, IDF) && hashing) {
+		/* return a one-Token hash code */
 		tk = idf_hashed(yytext);
 	}
 	return tk;
 }
 
 /* Token sets for module algollike */
-const TOKEN NonFinals[] = {
+const Token Non_Finals[] = {
 	IDF,		/* identifier */
 	NORM('{'),	/* also begin */
 	NORM('('),
@@ -125,25 +126,25 @@ const TOKEN NonFinals[] = {
 	NORM('v'),	/* var */
 	NORM('w'),	/* while */
 	NORM('W'),	/* with */
-	NOTOKEN
+	No_Token
 };
-const TOKEN NonInitials[] = {
+const Token Non_Initials[] = {
 	NORM(')'),
 	NORM('}'),
 	NORM(';'),
-	NOTOKEN
+	No_Token
 };
-const TOKEN Openers[] = {
+const Token Openers[] = {
 	NORM('{'),
 	NORM('('),
 	NORM('['),
-	NOTOKEN
+	No_Token
 };
-const TOKEN Closers[] = {
+const Token Closers[] = {
 	NORM('}'),
 	NORM(')'),
 	NORM(']'),
-	NOTOKEN
+	No_Token
 };
 
 %}
@@ -206,21 +207,21 @@ Idf		([A-Za-z][A-Za-z0-9_]*)
 	}
 
 {Idf}/"("	{			/* identifier in front of ( */
-		TOKEN tk;
+		Token tk;
 
-		tk = idf2token(option_set('F'));
-		if (!TOKEN_EQ(tk, SKIP)) return_tk(tk);
+		tk = idf2token(is_set_option('F'));
+		if (!Token_EQ(tk, No_Token)) return_tk(tk);
 	}
 
 {Idf}	{				/* identifier */
-		TOKEN tk;
+		Token tk;
 
 		tk = idf2token(0 /* no hashing */);
-		if (!TOKEN_EQ(tk, SKIP)) return_tk(tk);
+		if (!Token_EQ(tk, No_Token)) return_tk(tk);
 	}
 
 \;	{				/* semicolon, conditionally ignored */
-		if (option_set('f')) return_ch(yytext[0]);
+		if (is_set_option('f')) return_ch(yytext[0]);
 	}
 
 \n	{				/* count newlines */

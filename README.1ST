@@ -17,12 +17,12 @@ SIM is available for UNIX (in source code) and MSDOS (32-bit executables).
 
 UNIX:
 	To obtain the files, unpack sim_2_*.zip
-	This yields the sources, the Makefile, sim.pdf and READ_ME.
-	For installation notes and other info then see READ_ME.
+	This yields the sources, the Makefile, sim.pdf and README.
+	For installation notes and other info then see README.
 
 MSDOS:
 	The executables are available as SIM_*.EXE, where * is the language.
-	For other info then see READ.ME.
+	For other info then see README.
 
 Changes from Release 2.19:
 	A more terse output format is available; file names can be read from

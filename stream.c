@@ -1,6 +1,6 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: stream.c,v 2.7 2001/11/08 12:30:32 dick Exp $
+	$Id: stream.c,v 2.9 2012-05-05 14:47:47 Gebruiker Exp $
 */
 
 #include	<stdio.h>
@@ -16,7 +16,7 @@
 static FILE *fopen_regular_file(const char *fname);
 
 int
-OpenStream(const char *fname) {
+Open_Stream(const char *fname) {
 	int ok;
 
 	lex_nl_cnt = 1;
@@ -36,19 +36,19 @@ OpenStream(const char *fname) {
 
 static FILE *fopen_regular_file(const char *fname) {
 	struct stat buf;
-	
+
 	if (stat(fname, &buf) != 0) return 0;
 	if ((buf.st_mode & S_IFMT) != S_IFREG) return 0;
 	return fopen(fname, "r");
 }
 
 int
-NextStreamTokenObtained(void) {
+Next_Stream_Token_Obtained(void) {
 	return yylex();
 }
 
 void
-CloseStream(void) {
+Close_Stream(void) {
 	if (yyin) {
 		fclose(yyin);
 		yyin = 0;

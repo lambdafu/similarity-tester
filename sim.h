@@ -1,39 +1,25 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: sim.h,v 2.9 2008/09/23 09:07:12 dick Exp $
+	$Id: sim.h,v 2.14 2012-06-05 09:58:54 Gebruiker Exp $
 */
 
 #include	<stdio.h>
 
-struct position {
-	/* position of first and last token of a chunk */
-	struct position *ps_next;
-	int ps_type;		/* first = 0, last = 1 */
-	unsigned int ps_tk_cnt;	/* in tokens; set by add_run() in Pass 1 */
-	unsigned int ps_nl_cnt;	/* same, in line numbers; set by Pass2(),
-				   used by Pass3() to report line numbers
-				*/
-};
+extern unsigned int Min_Run_Size;
+extern int Page_Width;
+extern FILE *Output_File;
+extern FILE *Debug_File;
 
-struct text {
-	const char *tx_fname;	/* the file name */
-	struct position *tx_pos;/* list of positions in this file that are
-				   part of a chunk; sorted and updated by
-				   Pass 2
-				*/
-	unsigned int tx_start;	/* positions in TokenArray[] for the text */
-	unsigned int tx_limit;
-	unsigned int tx_nl_start;/* possibly newline pointer for pass2 */
-	unsigned int tx_nl_limit;
-};
+extern const char *token_name;		/* for possible mod in *lang.l */
+extern int Threshold_Percentage;	/* threshold percentage */
 
-extern unsigned int MinRunSize;
-extern int PageWidth;
-extern FILE *OutputFile;
-extern FILE *DebugFile;
-
-extern struct text *Text;		/* Text[], one for each input file */
-extern int NumberOfTexts;		/* number of text records */
-extern int NumberOfNewTexts;		/* number of new text records */
-extern int ThresholdPerc;		/* threshold percentage */
 extern const char *progname;		/* for error reporting */
+
+extern const char *min_run_string;
+extern const char *threshold_string;
+
+/* All output goes through designated files, so we block printf, etc. */
+#undef	printf
+#define	printf	use_fprintf
+#undef	putchar
+#define	putchar	use_fprintf

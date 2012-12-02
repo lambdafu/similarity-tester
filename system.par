@@ -1,6 +1,6 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: system.par,v 1.2 2001/09/28 09:03:55 dick Exp $
+	$Id: system.par,v 1.2 2001-09-28 09:03:55 dick Exp $
 */
 
 /*	Operating-system dependent data */

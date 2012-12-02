@@ -1,6 +1,6 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: text.c,v 1.4 2008/09/23 09:07:12 dick Exp $
+	$Id: text.c,v 1.9 2012-06-05 09:58:54 Gebruiker Exp $
 */
 
 #include	<stdio.h>
@@ -14,6 +14,10 @@
 #include	"options.h"
 #include	"error.h"
 #include	"text.h"
+
+struct text *Text;			/* to be filled in by Malloc() */
+int Number_Of_Texts;			/* number of text files */
+int Number_Of_New_Texts;		/* number of new text files */
 
 struct newline {
 	unsigned char nl_tk_diff;	/* token position difference */
@@ -36,17 +40,18 @@ static unsigned int last_tk_cnt;	/* token count at newline */
 static unsigned int last_nl_cnt;	/* nl counter during pass 2 */
 
 void
-InitText(int nfiles) {
+Init_Text(int nfiles) {
 	/* allocate the array of text descriptors */
-	NumberOfTexts = nfiles;
+	if (Text) Free(Text);
+	Number_Of_Texts = nfiles;
 	Text = (struct text *)
-		Malloc((unsigned int)(NumberOfTexts*sizeof (struct text)));
+		Malloc((unsigned int)(Number_Of_Texts*sizeof (struct text)));
 
 	init_nl_buff();
 }
 
 int
-OpenText(enum Pass pass, struct text *txt) {
+Open_Text(enum Pass pass, struct text *txt) {
 	switch (pass) {
 	case First:
 		last_tk_cnt = 0;
@@ -68,17 +73,17 @@ OpenText(enum Pass pass, struct text *txt) {
 		break;
 	}
 
-	return OpenStream(txt->tx_fname);
+	return Open_Stream(txt->tx_fname);
 }
 
 int
-NextTextTokenObtained(enum Pass pass) {
+Next_Text_Token_Obtained(enum Pass pass) {
 	int ok = 0;	/* gcc does not understand enum Pass */
 
 	switch (pass) {
 	case First:
-		ok = NextStreamTokenObtained();
-		if (TOKEN_EQ(lex_token, EOL)) {
+		ok = Next_Stream_Token_Obtained();
+		if (Token_EQ(lex_token, End_Of_Line)) {
 			store_newline();
 			last_tk_cnt = lex_tk_cnt;
 		}
@@ -95,13 +100,13 @@ NextTextTokenObtained(enum Pass pass) {
 
 				lex_nl_cnt = ++last_nl_cnt;
 				lex_tk_cnt = (last_tk_cnt += nl->nl_tk_diff);
-				lex_token = EOL;
+				lex_token = End_Of_Line;
 				ok = 1;
 			}
 		}
 		else {
-			while (	(ok = NextStreamTokenObtained())
-			&&	!TOKEN_EQ(lex_token, EOL)
+			while (	(ok = Next_Stream_Token_Obtained())
+			&&	!Token_EQ(lex_token, End_Of_Line)
 			) {
 				/* skip */
 			}
@@ -113,7 +118,7 @@ NextTextTokenObtained(enum Pass pass) {
 }
 
 void
-CloseText(enum Pass pass, struct text *txt) {
+Close_Text(enum Pass pass, struct text *txt) {
 	switch (pass) {
 	case First:
 		if (nl_buff) {
@@ -127,7 +132,7 @@ CloseText(enum Pass pass, struct text *txt) {
 	case Second:
 		break;
 	}
-	CloseStream();
+	Close_Stream();
 }
 
 /*							NEWLINE CACHING */
@@ -138,8 +143,8 @@ CloseText(enum Pass pass, struct text *txt) {
 	at consecutive line ends. This allows unsigned chars to be used rather
 	than integers.
 
-	The recording of token position differences at EOL is optional, and
-	is switched off if
+	The recording of token position differences at End_Of_Line is optional,
+	and is switched off if
 	-	there is not room enough for the newline buffer.
 	-	a difference would not fit in the field in the struct.
 	Switching off is done by freeing the buffer and setting nl_buff to 0.
@@ -153,6 +158,7 @@ init_nl_buff(void) {
 	/* Allocate the newline buffer, if possible */
 	nl_size = 0 + NL_INCR;
 	nl_buff = (struct newline *)TryMalloc(sizeof (struct newline)*nl_size);
+	nl_free = 0;
 }
 
 static void
@@ -202,32 +208,32 @@ void
 db_print_nl_buff(unsigned int start, unsigned int limit) {
 	int i;
 
-	fprintf(DebugFile, "\n**** DB_NL_BUFF ****\n");
+	fprintf(Debug_File, "\n**** DB_NL_BUFF ****\n");
 	if (!nl_buff) {
-		fprintf(DebugFile, ">>>> NO NL_BUFF\n\n");
+		fprintf(Debug_File, ">>>> NO NL_BUFF\n\n");
 		return;
 	}
 
 	if (start > nl_free) {
-		fprintf(DebugFile, ">>>> start (%u) > nl_free (%u)\n\n",
+		fprintf(Debug_File, ">>>> start (%u) > nl_free (%u)\n\n",
 			start, nl_free
 		);
 		return;
 	}
 	if (limit > nl_free) {
-		fprintf(DebugFile, ">>>> limit (%u) > nl_free (%u)\n\n",
+		fprintf(Debug_File, ">>>> limit (%u) > nl_free (%u)\n\n",
 			limit, nl_free
 		);
 		return;
 	}
 
-	fprintf(DebugFile, "nl_buff: %u entries:\n", nl_free);
+	fprintf(Debug_File, "nl_buff: %u entries:\n", nl_free);
 	for (i = start; i < limit; i++) {
 		struct newline *nl = &nl_buff[i];
 
-		fprintf(DebugFile, "nl_tk_diff = %d\n", nl->nl_tk_diff);
+		fprintf(Debug_File, "nl_tk_diff = %d\n", nl->nl_tk_diff);
 	}
-	fprintf(DebugFile, "\n");
+	fprintf(Debug_File, "\n");
 }
 
 #endif	/* DB_NL_BUFF */

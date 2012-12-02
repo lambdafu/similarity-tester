@@ -1,6 +1,6 @@
 /*	This file is part of the memory management and leak detector MALLOC.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: Malloc.c,v 1.2 2008/04/03 12:24:59 dick Exp $
+	$Id: Malloc.c,v 1.6 2012-01-25 21:43:05 Gebruiker Exp $
 */
 
 #include	<stdio.h>
@@ -9,8 +9,17 @@
 #include	<string.h>
 
 #include	"Malloc.h"
-#undef	new		/* don't call Malloc in Malloc.c */
+#undef	new
+#define	new		use_my_new	/* don't call Malloc in Malloc.c */
 #define	my_new(type)	((type *)malloc(sizeof (type)))
+
+/* All output goes through designated files, so we block printf, etc. */
+#undef	printf
+#define	printf	use_fprintf
+#undef	putchar
+#define	putchar	use_fprintf
+
+#ifndef	lint
 
 static void
 fprintloc(FILE *f, const char *fname, int l_nmb) {
@@ -20,7 +29,8 @@ fprintloc(FILE *f, const char *fname, int l_nmb) {
 static void
 out_of_memory(const char *fname, int l_nmb, size_t size)  {
 	fprintloc(stderr, fname, l_nmb);
-	fprintf(stderr, "Out of memory, requested size = %d\n", size);
+	fprintf(stderr, "Out of memory, requested size = %lld\n",
+		(long long int)size);
 	exit(1);
 }
 
@@ -32,9 +42,9 @@ out_of_memory(const char *fname, int l_nmb, size_t size)  {
    would be too much.
 */
 
-static size_t total = 0;
-static size_t balance = 0;
-static size_t max = 0;
+static long long int total = 0;
+static long long int balance = 0;
+static long long int max = 0;
 
 struct record {
 	struct record *next;
@@ -79,7 +89,7 @@ record_pointer_for_address(const char *addr) {
 		if ((*rp)->addr == addr) break;
 		rp = &(*rp)->next;
 	}
-	
+
 	return rp;
 }
 
@@ -88,12 +98,9 @@ record_free(char *addr) {
 	struct record **oldp = record_pointer_for_address(addr);
 	struct record *old = *oldp;
 
-	if (old == 0) {
-		return 0;
-	}
+	if (old == 0) return 0;
 
 	*oldp = old->next;
-
 	balance -= old->size;
 
 	return old->size;
@@ -101,9 +108,9 @@ record_free(char *addr) {
 
 #endif	/* defined MEMLEAK || defined MEMCLOBBER */
 
-#ifdef	MEMCLOBBER
-static void
-clobber(char *s, size_t size) {
+void
+MemClobber(void *p, size_t size) {
+	unsigned char *s = (unsigned char *)p;
 	unsigned char byte;
 	size_t i;
 
@@ -113,7 +120,6 @@ clobber(char *s, size_t size) {
 		byte ^= 0xff;
 	}
 }
-#endif	/* MEMCLOBBER */
 
 #ifdef	MEMLEAK
 
@@ -176,11 +182,30 @@ compacted_leaks(void) {
 	return res;
 }
 
+static int
+number_of_leaks(const struct entry *e) {
+	int res = 0;
+
+	while (e != 0) {
+		res++;
+		e = e->next;
+	}
+
+	return res;
+}
+
 static void
 report_actual_leaks(FILE *f) {
-	struct entry *e = compacted_leaks();
+	const struct entry *e = compacted_leaks();
+	int n_leaks = number_of_leaks(e);
 
-	fprintf(f, "\nMemory leaks:\n");
+	if (n_leaks == 0) return;
+
+	fprintf(f, "There %s %d case%s of unreclaimed memory:\n",
+		(n_leaks == 1 ? "was" : "were"),
+		n_leaks,
+		(n_leaks == 1 ? "" : "s")
+	);
 
 	while (e) {
 		fprintloc(f, e->fname, e->l_nmb);
@@ -190,32 +215,32 @@ report_actual_leaks(FILE *f) {
 		if (e->var_size) {
 			/* e->size is the sum of the sizes */
 			fprintf(f, "%d on average",
-				 (e->size+e->n_blocks/2) / e->n_blocks
+				 (e->size + e->n_blocks/2) / e->n_blocks
 			);
 		}
 		else {
 			/* e->size is the single size */
 			fprintf(f, "%d", e->size);
 		}
+		if (e->n_blocks > 1) {
+			fprintf(f, " = %d",
+				(e->var_size ? e->size : e->size*e->n_blocks));
+		}
 		fprintf(f, "\n");
 
 		e = e->next;
 	}
-	fprintf(f, "\n");
 }
 
 void
 ReportMemoryLeaks(FILE *f) {
-	if (balance == 0) {
-		fprintf(f, "\nNo memory leaks\n\n");
-	}
-	else {
-		report_actual_leaks(f);
-	}
+	if (f == 0) f = stderr;
+	if (balance == 0) return;
+	report_actual_leaks(f);
 
-	fprintf(f, "total memory allocated= %u", total);
-	fprintf(f, ", maximum allocated = %u", max);
-	fprintf(f, ", garbage left = %u", balance);
+	fprintf(f, "Total memory allocated= %lld", total);
+	fprintf(f, ", maximum allocated = %lld", max);
+	fprintf(f, ", garbage left = %lld", balance);
 	fprintf(f, "\n");
 }
 
@@ -241,7 +266,7 @@ _leak_malloc(int chk, size_t size, const char *fname, int l_nmb) {
 	record_alloc(res, size, fname, l_nmb);
 
 #ifdef	MEMCLOBBER
-	clobber((char *)res, size);
+	MemClobber((char *)res, size);
 #endif
 #endif
 
@@ -271,7 +296,11 @@ _leak_realloc(int chk, void *addr, size_t size, const char *fname, int l_nmb) {
 	size_t old_size = record_free(addr);
 
 	/* we report first, because the realloc() below may cause a crash */
-	if (old_size == 0) {
+	if (	/* we are not reallocating address 0, which is allowed */
+		addr != 0
+	&&	/* the address was never handed out before */
+		old_size == 0
+	) {
 		fprintloc(stderr, fname, l_nmb);
 		fprintf(stderr, ">>>> unallocated block reallocated <<<<\n");
 	}
@@ -289,7 +318,7 @@ _leak_realloc(int chk, void *addr, size_t size, const char *fname, int l_nmb) {
 
 #ifdef	MEMCLOBBER
 	if (old_size > 0 && size > old_size) {
-		clobber(((char *)res)+old_size, size-old_size);
+		MemClobber(((char *)res)+old_size, size-old_size);
 	}
 #endif
 
@@ -310,7 +339,7 @@ _leak_free(void *addr, const char *fname, int l_nmb) {
 	}
 	else {
 #ifdef	MEMCLOBBER
-	clobber((char *)addr, old_size);
+	MemClobber((char *)addr, old_size);
 #endif
 	}
 #endif
@@ -321,6 +350,7 @@ char *
 _new_string(const char *s, const char *fname, int l_nmb) {
 	return strcpy((char *)(_leak_malloc(1, strlen(s)+1, fname, l_nmb)), s);
 }
+#endif	/* not lint */
 
 #ifdef	lint
 static void

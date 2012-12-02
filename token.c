@@ -1,6 +1,6 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: token.c,v 2.5 2008/09/23 09:07:12 dick Exp $
+	$Id: token.c,v 2.9 2012-05-13 09:05:50 Gebruiker Exp $
 */
 
 /*
@@ -11,34 +11,103 @@
 
 #include	"token.h"
 
+int
+Token_in_range(const Token tk, int low, int high) {
+	int tki = Token2int(tk);
+	if (tki < low) return 0;
+	if (tki > high) return 0;
+	return 1;
+}
+
+static int
+check_and_print(
+	FILE *ofile, const char *name, char ch, char low, char high, char offset
+) {
+	int ch1 = ch + offset;
+	if (low <= ch1 && ch1 <= high) {
+		fprintf(ofile, "%s(%c)", name,ch1);
+		return 1;
+	}
+	return 0;
+}
+
 void
-print_token(FILE *ofile, TOKEN tk) {
-	/*	prints a token, in two characters:
-			normal char		meta (bit 8 set)
+fprint_token(FILE *ofile, const Token tk) {
+	/*	Prints a regular token in two characters:
+			normal char		meta (bit 9 set)
 			^A	cntl		$A	meta-cntl
 			 A	printable	#A	meta
-			^?	DEL		$?	meta-DEL
+		and hashed tokens in hexadecimal.
 	*/
-	int ch =   TOKEN2int(tk) & 0177;
-	int meta = TOKEN2int(tk) & 0200;
+	int tki = Token2int(tk);
+	int ch =   tki & 0x7F;
+	int bit8 = tki & 0x80;
 
-	if (' ' <= ch && ch <= '~') {
-		fprintf(ofile, "%c%c", (meta ? '#' : ' '), ch);
+
+	if (Token_EQ(tk, No_Token))	{fprintf(ofile, "--"); return;}
+	if (Token_EQ(tk, IDF))		{fprintf(ofile, "IDF"); return;}
+	if (Token_EQ(tk, End_Of_Line))	{fprintf(ofile, "EOL"); return;}
+
+	if (is_simple_token(tk)) {
+		if ('!' <= ch && ch <= '~') {
+			fprintf(ofile, "%s%c", (bit8 ? "8" : ""), ch);
+			return;
+		}
+		if (0 < ch && ch <= ' ') {
+			fprintf(ofile, "%s%c", (bit8 ? "$" : "^"), ch + '@');
+			return;
+		}
+		if (ch == 0x7F) {
+			fprintf(ofile, "%s%c", (bit8 ? "$" : "^"), '?');
+			return;
+		}
 	}
-	else {
-		fprintf(ofile, "%c%c",
-			(meta ? '$' : '^'),
-			(ch == 0177 ? '?' : ch + '@')
-		);
+
+	if (is_CTRL_token(tk)) {
+		if (check_and_print(ofile, "CTRL", ch, 'A', '~', '@')) return;
 	}
+
+	if (is_NORM_token(tk)) {
+		if (check_and_print(ofile, "NORM", ch, '!', '~', '\0')) return;
+	}
+
+	if (is_MTCT_token(tk)) {
+		if (check_and_print(ofile, "MTCT", ch, 'A', '~', '@')) return;
+	}
+
+	if (is_META_token(tk)) {
+		if (check_and_print(ofile, "META", ch, '!', '~', '\0')) return;
+	}
+
+	if (is_hashed_token(tk)) {
+		fprintf(ofile, "0x%04x", tki);
+		return;
+	}
+
+	/* gap token! */
+	fprintf(ofile, "!0x%04x!", tki);
 }
 
-#ifdef	TESTTOKEN
+
+
+#ifdef	XXXX
+		int ch =   tki & 0177;
+		int meta = tki & 0200;
+
+		if (' ' <= ch && ch <= '~') {
+			fprintf(ofile, "%c%c", (meta ? '#' : ' '), ch);
+		}
+		else {
+			fprintf(ofile, "%c%c",
+				(meta ? '$' : '^'),
+				(ch == 0177 ? '?' : ch + '@')
+				);
+		}
+#endif
+
 
 int
-TOKEN_EQ(TOKEN t1, TOKEN t2) {
-	/* to make sure TOKEN_EQ is indeed called with two TOKEN parameters */
-	return TOKEN2int(t1) == TOKEN2int(t2);
+Token_EQ(const Token t1, const Token t2) {
+	/* to make sure Token_EQ is indeed called with two Token parameters */
+	return Token2int(t1) == Token2int(t2);
 }
-
-#endif	/* TESTTOKEN */

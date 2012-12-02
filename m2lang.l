@@ -1,7 +1,7 @@
 %{
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: m2lang.l,v 2.11 2008/09/23 09:07:11 dick Exp $
+	$Id: m2lang.l,v 2.14 2012-05-06 15:37:18 Gebruiker Exp $
 */
 
 /*
@@ -40,7 +40,7 @@ static const struct idf reserved[] = {
 	{"BY",		NORM('B')},
 	{"CASE",	NORM('c')},
 	{"CONST",	NORM('C')},
-	{"DEFINITION",	SKIP},
+	{"DEFINITION",	No_Token},
 	{"DIV",		NORM('/')},
 	{"DO",		NORM('D')},
 	{"ELSE",	NORM('e')},
@@ -49,16 +49,16 @@ static const struct idf reserved[] = {
 	{"EXIT",	NORM('E')},
 	{"EXPORT",	CTRL('E')},
 	{"FOR",		NORM('F')},
-	{"FROM",	SKIP},
+	{"FROM",	No_Token},
 	{"IF",		NORM('i')},
-	{"IMPLEMENTATION", SKIP},
-	{"IMPORT",	SKIP},
+	{"IMPLEMENTATION",	No_Token},
+	{"IMPORT",	No_Token},
 	{"IN",		NORM('I')},
 	{"LOOP",	NORM('l')},
 	{"MOD",		NORM('%')},
-	{"MODULE",	SKIP},
+	{"MODULE",	No_Token},
 	{"NOT",		NORM('~')},
-	{"OF",		SKIP},
+	{"OF",		No_Token},
 	{"OR",		NORM('O')},
 	{"POINTER",	NORM('p')},
 	{"PROCEDURE",	NORM('P')},
@@ -67,7 +67,7 @@ static const struct idf reserved[] = {
 	{"REPEAT",	NORM('R')},
 	{"RETURN",	CTRL('r')},
 	{"SET",		NORM('s')},
-	{"THEN",	SKIP},
+	{"THEN",	No_Token},
 	{"TO",		NORM('t')},
 	{"TYPE",	NORM('T')},
 	{"UNTIL",	NORM('u')},
@@ -118,20 +118,20 @@ static const struct idf standard[] = {
 
 /* Special treatment of identifiers */
 
-static TOKEN
+static Token
 idf2token(int hashing) {
-	TOKEN tk;
+	Token tk;
 
 	/* the token can be on two lists, reserved and standard */
 	tk = idf_in_list(yytext, reserved, sizeof reserved, IDF);
 
 	/* is it one of the keywords to be ignored? */
-	if (TOKEN_EQ(tk, SKIP)) return tk;
+	if (Token_EQ(tk, No_Token)) return tk;
 
 	/*	The statement below is a significant comment
 		on the value of state variables.
 	*/
-	if (!TOKEN_EQ(tk, IDF)) {
+	if (!Token_EQ(tk, IDF)) {
 		/* reserved word, stop the skipping */
 		skip_imports = 0;
 	}
@@ -144,8 +144,8 @@ idf2token(int hashing) {
 		else {
 			/* look further */
 			tk = idf_in_list(yytext, standard, sizeof standard, IDF);
-			if (TOKEN_EQ(tk, IDF) && hashing) {
-				/* return a one-token hash code */
+			if (Token_EQ(tk, IDF) && hashing) {
+				/* return a one-Token hash code */
 				tk = idf_hashed(yytext);
 			}
 		}
@@ -154,7 +154,7 @@ idf2token(int hashing) {
 }
 
 /* Token sets for module algollike */
-const TOKEN NonFinals[] = {
+const Token Non_Finals[] = {
 	IDF,		/* identifier */
 	NORM('{'),	/* also BEGIN */
 	NORM('('),
@@ -176,26 +176,26 @@ const TOKEN NonFinals[] = {
 	NORM('v'),	/* VAR */
 	NORM('w'),	/* WHILE */
 	NORM('W'),	/* WITH */
-	NOTOKEN
+	No_Token
 };
-const TOKEN NonInitials[] = {
+const Token Non_Initials[] = {
 	NORM('}'),
 	NORM(')'),
 	NORM(']'),
 	NORM(';'),
-	NOTOKEN
+	No_Token
 };
-const TOKEN Openers[] = {
+const Token Openers[] = {
 	NORM('{'),
 	NORM('('),
 	NORM('['),
-	NOTOKEN
+	No_Token
 };
-const TOKEN Closers[] = {
+const Token Closers[] = {
 	NORM('}'),
 	NORM(')'),
 	NORM(']'),
-	NOTOKEN
+	No_Token
 };
 
 %}
@@ -259,21 +259,19 @@ Idf		([A-Za-z][A-Za-z0-9_]*)
 	}
 
 "END"{Layout}*{Idf}	{		/* ignore identifier after END */
-		return_tk(idf_in_list("END", reserved, sizeof reserved, SKIP));
+		Token tk =
+		      idf_in_list("END", reserved, sizeof reserved, No_Token);
+		if (!Token_EQ(tk, No_Token)) return_tk(tk);
 	}
 
 {Idf}/"("	{			/* identifier in front of ( */
-		TOKEN tk;
-
-		tk = idf2token(option_set('F'));
-		if (!TOKEN_EQ(tk, SKIP)) return_tk(tk);
+		Token tk = idf2token(is_set_option('F')/* hashing option */);
+		if (!Token_EQ(tk, No_Token)) return_tk(tk);
 	}
 
 {Idf}	{				/* identifier */
-		TOKEN tk;
-
-		tk = idf2token(0 /* no hashing */);
-		if (!TOKEN_EQ(tk, SKIP)) return_tk(tk);
+		Token tk = idf2token(0 /* no hashing */);
+		if (!Token_EQ(tk, No_Token)) return_tk(tk);
 	}
 
 "<>"	{				/* <>, special equivalence */
@@ -281,7 +279,7 @@ Idf		([A-Za-z][A-Za-z0-9_]*)
 	}
 
 \;	{				/* semicolon, conditionally ignored */
-		if (option_set('f')) return_ch(yytext[0]);
+		if (is_set_option('f')) return_ch(yytext[0]);
 	}
 
 \n	{				/* count newlines */

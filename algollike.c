@@ -1,20 +1,20 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: algollike.c,v 2.5 2008/09/23 09:07:11 dick Exp $
+	$Id: algollike.c,v 2.8 2012-05-06 15:37:17 Gebruiker Exp $
 */
 
-/*	This module implements the routines InitLanguage, MayBeStartOfRun
-	and CheckRun for ALGOL-like languages, in which it is meaningful
+/*	This module implements the routines Init_Language, May_Be_Start_Of_Run
+	and Best_Run_Size for ALGOL-like languages, in which it is meaningful
 	and useful to isolate function bodies.
 
 	It requires the user to define, preferably in Xlang.l, four token
-	sets, represented as TOKEN[] and terminated by NOTOKEN:
+	sets, represented as Token set[] and terminated by No_Token:
 
-	TOKEN NonFinals[]	tokens that may not end a chunk
-	TOKEN NonInitials[]	tokens that may not start a chunk
-	TOKEN Openers[]		openers of parentheses that must balance
+	Token Non_Finals[]	tokens that may not end a chunk
+	Token Non_Initials[]	tokens that may not start a chunk
+	Token Openers[]		openers of parentheses that must balance
 					in functions
-	TOKEN Closers[]		the corresponding closers, in the same order
+	Token Closers[]		the corresponding closers, in the same order
 */
 
 #include	"options.h"
@@ -22,56 +22,63 @@
 #include	"algollike.h"
 
 /*	Arrays for fast identification tests for tokens.  Each token is
-	identified by its position in the set + 1.  For example, if T is
-	the n-th Opener, openers[TOKEN2int(tk)] == n+1.
+	identified by its position in the set + 1.  For example, if tk is
+	the n-th Opener, openers[Token2int(tk)] == n+1.
 */
-static char non_finals[256];
-static char non_initials[256];
-static char openers[256];
-static char closers[256];
+static char non_finals[N_REGULAR_TOKENS];
+static char non_initials[N_REGULAR_TOKENS];
+static char openers[N_REGULAR_TOKENS];
+static char closers[N_REGULAR_TOKENS];
 
-static void cvt2bittable(const TOKEN *tl, char bt[256]);
-static unsigned int largest_function(const TOKEN *str, unsigned int size);
+static int
+pos_in_set(const char set[], const Token tk) {
+	if (!is_regular_token(tk)) return 0;
+	return set[Token2int(tk)];
+}
+
+static void cvt2bittable(const Token *tl, char bt[N_REGULAR_TOKENS]);
+static unsigned int largest_function(const Token *str, unsigned int size);
 
 void
-InitLanguage(void) {
+Init_Language(void) {
 	/* convert the token sets to bitmaps */
-	cvt2bittable(NonFinals, non_finals);
-	cvt2bittable(NonInitials, non_initials);
+	cvt2bittable(Non_Finals, non_finals);
+	cvt2bittable(Non_Initials, non_initials);
 	cvt2bittable(Openers, openers);
 	cvt2bittable(Closers, closers);
 }
 
 static void
-cvt2bittable(const TOKEN *tl, char bt[256]) {
+cvt2bittable(const Token *tl, char bt[N_REGULAR_TOKENS]) {
+	/* assumes bt[] is cleared */
 	int i;
 	int cnt = 1;
 
-	for (i = 0; !TOKEN_EQ(tl[i], NOTOKEN); i++) {
-		bt[TOKEN2int(tl[i])] = cnt++;
+	for (i = 0; !Token_EQ(tl[i], No_Token); i++) {
+		bt[Token2int(tl[i])] = cnt++;
 	}
 }
 
 int
-MayBeStartOfRun(TOKEN tk) {
-	return !non_initials[TOKEN2int(tk)];
+May_Be_Start_Of_Run(const Token tk) {
+	return pos_in_set(non_initials, tk) == 0;
 }
 
 unsigned int
-CheckRun(const TOKEN *str, unsigned int size) {
-	/*	Checks the run starting at str with length size for
+Best_Run_Size(const Token *tka, unsigned int size) {
+	/*	Checks the run starting at tka[0] with length size for
 		acceptability in the language.  Cuts from the end if
 		necessary and returns the accepted length, which may
 		be zero.
 	*/
 
-	if (option_set('f')) {
+	if (is_set_option('f')) {
 		/* reduce to a function-like form first */
-		size = largest_function(str, size);
+		size = largest_function(tka, size);
 	}
 
 	while (	/* there is trailing garbage */
-		size != 0 && non_finals[TOKEN2int(str[size-1])]
+	       size != 0 && pos_in_set(non_finals, tka[size-1])
 	) {
 		/* remove it */
 		size--;
@@ -81,31 +88,32 @@ CheckRun(const TOKEN *str, unsigned int size) {
 }
 
 static unsigned int
-largest_function(const TOKEN *str, unsigned int size) {
+largest_function(const Token *tka, unsigned int size) {
 	/*	Returns the size of the longest sequence starting at
-		str[0] and not containing unbalanced parentheses.
+		tka[0] and not containing unbalanced parentheses.
 		Does not check the nesting of the parentheses, but then,
 		sim is syntax-free anyway.
 	*/
 	unsigned int mrb_size = 0;  /* most recent balancing size */
 	unsigned int pos;
 	int i;
-	int balance_count[256];
+	int balance_count[N_REGULAR_TOKENS];
+	/* Overkill: only a fraction of the tokens are balancers; oh well. */
 	int n_imbalances;
 
 	/* clear administration */
 	n_imbalances = 0;
-	for (i = 0; i < 255; i++) {
+	for (i = 0; i < N_REGULAR_TOKENS; i++) {
 		balance_count[i] = 0;
 	}
 
-	/* scan str[] and see how far we get */
+	/* scan tka[] and see how far we get */
 	for (pos = 0; pos < size; pos++) {
-		int tkval = TOKEN2int(str[pos]);
+		Token tk = tka[pos];
 		int pp;		/* parenthesis position */
 
 		/* account for openers */
-		if ((pp = openers[tkval])) {
+		if ((pp = pos_in_set(openers, tk))) {
 			if (balance_count[pp] == 0) {
 				/* about to create an imbalance */
 				n_imbalances++;
@@ -114,7 +122,7 @@ largest_function(const TOKEN *str, unsigned int size) {
 		}
 
 		/* account for closers */
-		if ((pp = closers[tkval])) {
+		if ((pp = pos_in_set(closers, tk))) {
 			if (balance_count[pp] == 0) {
 				/* this is one Closer too many */
 				return mrb_size;

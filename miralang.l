@@ -1,7 +1,7 @@
 %{
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: miralang.l,v 1.4 2008/03/31 10:35:16 dick Exp $
+	$Id: miralang.l,v 1.6 2012-05-06 09:42:10 Gebruiker Exp $
 */
 
 /*
@@ -39,27 +39,27 @@ static const struct idf reserved[] = {
 };
 
 /* Token sets for module algollike */
-const TOKEN NonFinals[] = {
+const Token Non_Finals[] = {
 	NORM('('),
 	NORM('['),
 	NORM('='),
-	NOTOKEN
+	No_Token
 };
-const TOKEN NonInitials[] = {
+const Token Non_Initials[] = {
 	NORM(')'),
 	NORM(']'),
-	NOTOKEN
+	No_Token
 };
-const TOKEN Openers[] = {
+const Token Openers[] = {
 	NORM('('),
 	NORM('['),
 	NORM('='),
-	NOTOKEN
+	No_Token
 };
-const TOKEN Closers[] = {
+const Token Closers[] = {
 	NORM(')'),
 	NORM(']'),
-	NOTOKEN
+	No_Token
 };
 
 %}

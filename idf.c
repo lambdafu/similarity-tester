@@ -1,6 +1,6 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: idf.c,v 2.9 2008/09/23 09:07:11 dick Exp $
+	$Id: idf.c,v 2.16 2012-05-09 11:50:37 Gebruiker Exp $
 */
 
 #include	<string.h>
@@ -9,12 +9,12 @@
 #include	"token.h"
 #include	"idf.h"
 
-TOKEN
+Token
 idf_in_list(
 	const char *str,
 	const struct idf list[],
 	unsigned int listsize,
-	TOKEN dflt
+	Token default_token
 ) {
 	int first = 0;
 	int last = (listsize / sizeof (struct idf)) - 1;
@@ -31,18 +31,24 @@ idf_in_list(
 	}
 	return (strcmp(str, list[first].id_tag) == 0
 	?	list[first].id_tr
-	:	dflt
+	:	default_token
 	);
 }
 
-TOKEN
+#define	HASH(h,ch)	(((h) * 8209) + (ch)*613)
+
+Token
 idf_hashed(const char *str) {
 	int32 h = 0;
 
 	/* let's be careful about ranges; if done wrong it's hard to debug */
 	while (*str) {
+		int ch = *str++ & 0377;
+
+		if (ch == ' ') continue;
+
 		/* -1 <= h <= 2^31-1 */
-		h = (h << 1) + (*str++&0377);
+		h = HASH(h, ch);
 		/* -2^31 <= h <= 2^31-1 */
 		if (h < 0) {
 			/* -2^31 <= h <= -1 */
@@ -57,11 +63,13 @@ idf_hashed(const char *str) {
 	/* -1 <= h <= 2^31-1 */
 	if (h < 0) {
 		/* h = -1 */
-		/* a very small chance, but all the same */
 		h = 0;
 	}
 	/* 0 <= h <= 2^31-1 */
-	h %= 253;				/* 0 <= h < 253 */
-	return NORM(h + 1);			/* 1 <= h < 254 */
-	/* this avoids SKIP (0) and EOL (255) */
+	h %= (N_TOKENS - N_REGULAR_TOKENS - 1);
+	/* 0 <= h < N_TOKENS - N_REGULAR_TOKENS - 1 */
+	h += N_REGULAR_TOKENS;
+	/* N_REGULAR_TOKENS <= h < N_TOKENS - 1 */
+	return int2Token(h);
+	/* this avoids the regular tokens and End_Of_Line */
 }

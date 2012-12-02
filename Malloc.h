@@ -1,6 +1,6 @@
 /*	This file is part of the memory management and leak detector MALLOC.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: Malloc.h,v 1.2 2008/04/21 14:35:43 dick Exp $
+	$Id: Malloc.h,v 1.3 2012-01-25 21:43:05 Gebruiker Exp $
 */
 
 #include	<stdio.h>
@@ -18,7 +18,7 @@ The module defines several sets of routines:
 1.  void *Malloc(size_t s)
     void *Calloc(int n, size_t s)
     void *Realloc(void *p, size_t s)
-    void *Free(void *p)
+    void Free(void *p)
 
 2.  void *TryMalloc(size_t s)
     void *TryCalloc(int n, size_t s)
@@ -56,9 +56,13 @@ The module defines several sets of routines:
 
 * When Malloc.c is compiled with -DMEMCLOBBER, it clobbers all newly allocated
   memory from Malloc() and Realloc() just after allocation, and all freed
-  memory just before freeing it.  Clobbering means overwriting it with the bit
-  pattern 1010101001010101. This is done in the hope that improper use of
-  memory will cause some evident error somewhere.
+  memory just before freeing it.  An area is clobbered by overwriting it with
+  a wacky bit pattern. This is done in the hope that improper use of memory
+  will cause some evident error somewhere.
+
+  The routine that performs the clobbering, MemClobber(void *p, size_t size),
+  is available regardless of the -DMEMCLOBBER compilation option. It can be
+  used to create comparison patterns.
 
 * Compiled with any of the -DMEM... flags, Malloc will also produce run-time
   error messages for multiple Free()s of the same block, and Realloc()s on
@@ -85,5 +89,6 @@ extern void *_leak_realloc(int chk, void *addr, size_t size, const char *fname, 
 extern void _leak_free(void *addr, const char *fname, int l_nmb);
 
 extern void ReportMemoryLeaks(FILE *f);
+extern void MemClobber(void *p, size_t size);
 
 extern char *_new_string(const char *s, const char *fname, int l_nmb);

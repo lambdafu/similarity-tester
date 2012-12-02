@@ -1,7 +1,7 @@
 %{
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: javalang.l,v 1.6 2008/09/23 09:07:11 dick Exp $
+	$Id: javalang.l,v 1.9 2012-05-06 15:37:18 Gebruiker Exp $
 */
 
 /*
@@ -69,20 +69,20 @@ static const struct idf reserved[] = {
 
 /* Special treatment of identifiers */
 
-static TOKEN
+static Token
 idf2token(int hashing) {
-	TOKEN tk;
+	Token tk;
 
 	tk = idf_in_list(yytext, reserved, sizeof reserved, IDF);
-	if (TOKEN_EQ(tk, IDF) && hashing) {
-		/* return a one-token hash code */
+	if (Token_EQ(tk, IDF) && hashing) {
+		/* return a one-Token hash code */
 		tk = idf_hashed(yytext);
 	}
 	return tk;
 }
 
 /* Token sets for module algollike */
-const TOKEN NonFinals[] = {
+const Token Non_Finals[] = {
 	IDF,		/* identifier */
 	NORM('{'),
 	NORM('('),
@@ -128,25 +128,25 @@ const TOKEN NonFinals[] = {
 	NORM('v'),	/* void */
 	NORM('V'),	/* volatile */
 	NORM('w'),	/* while */
-	NOTOKEN
+	No_Token
 };
-const TOKEN NonInitials[] = {
+const Token Non_Initials[] = {
 	NORM(')'),
 	NORM('}'),
 	NORM(';'),
-	NOTOKEN
+	No_Token
 };
-const TOKEN Openers[] = {
+const Token Openers[] = {
 	NORM('{'),
 	NORM('('),
 	NORM('['),
-	NOTOKEN
+	No_Token
 };
-const TOKEN Closers[] = {
+const Token Closers[] = {
 	NORM('}'),
 	NORM(')'),
 	NORM(']'),
-	NOTOKEN
+	No_Token
 };
 
 %}
@@ -220,21 +220,21 @@ Idf		([A-Za-z][A-Za-z0-9_]*)
 	}
 
 {Idf}/"("	{			/* identifier in front of ( */
-		TOKEN tk;
+		Token tk;
 
-		tk = idf2token(option_set('F'));
-		if (!TOKEN_EQ(tk, SKIP)) return_tk(tk);
+		tk = idf2token(is_set_option('F'));
+		if (!Token_EQ(tk, No_Token)) return_tk(tk);
 	}
 
 {Idf}	{				/* identifier */
-		TOKEN tk;
+		Token tk;
 
 		tk = idf2token(0 /* no hashing */);
-		if (!TOKEN_EQ(tk, SKIP)) return_tk(tk);
+		if (!Token_EQ(tk, No_Token)) return_tk(tk);
 	}
 
 \;	{				/* semicolon, conditionally ignored */
-		if (option_set('f')) return_ch(yytext[0]);
+		if (is_set_option('f')) return_ch(yytext[0]);
 	}
 
 \n	{				/* count newlines */

@@ -1,12 +1,26 @@
+2012-05-08  Dick Grune
+
+	* Changed to 16-bit tokens, for better resolution for sim_text and
+	on -F option, and for UTF-8 input.
+
+	It was not worth while to save the 8-bit token code: on serious
+	comparisons the increase in memory usage is about 10% (330 000 on a
+	maximum allocation of 3 030 976 for comparing the sources of MCD2).
+
+2009-03-11  Dick Grune  <dick@flits.few.vu.nl>
+
+	* newargs.c: added -R option to follow directories recursively.
+	  See recursive_args().
+
 2008-09-22    <Dick@ACER>
 	* added newargs.[ch], to supply file names from standard input,
-	  for those copilers that do not have the @ facilty. Implemented
-	  without fixed limits.	
+	  for those compilers that do not have the @ facility. Implemented
+	  without fixed limits.
 
 2008-09-21    <Dick@ACER>
 	* changed default format back to original, and inverted the
 	  -v(erbose) option into a -T(erse) option.
-	
+
 2008-03-31  Dick Grune  <dick@flits.few.vu.nl>
 	* *.l: the following are not universally recognized; removed.
 		%option nounput
@@ -21,7 +35,7 @@
 	- added option "-tN" to define a threshold %N (only similarities
 	  over N% are shown)
 	- fixed SEGV on writing to the output file
-	- the file list can be informed through STDIN (one file per line, 
+	- the file list can be informed through STDIN (one file per line,
 	  accepts "/" marker); this is useful for compilers that lack the
 	  @ facility
 
@@ -42,7 +56,7 @@
 	similarity between two files in percents.
 
 27-Sep-2001	Dick Grune
-	Split add_run() off from compare.c into add_run.c, to accomodate
+	Split add_run() off from compare.c into add_run.c, to accommodate
 	different add_run()s, for different types of processing.
 
 27-Nov-1998	Dick Grune
@@ -62,13 +76,13 @@
 	forward_references[], a total of 5 bytes.  There are about 3
 	tokens to a line, together requiring 15 bytes, plus 1 byte in
 	nl_buff yields 16 bytes.  So releasing nl_buff frees only 1/16 =
-	6.7 % of memeory.
+	6.7 % of memory.
 
 	Since the code is a bother, I removed it.  Note that nl_buff is
 	still abandoned when the number of tokens in a line does not fit
 	in one unsigned char (but that is not very likely to happen).
 
-	
+
 21-Feb-1998	Dick Grune
 	Printing got into an infinite loop when the last line of the
 	input was not terminated by a newline AND contained tokens that
@@ -143,9 +157,9 @@
 	forward_references easily removes another 80-99% of false hits.
 	Next, a third sweep that does a full comparison will remove another
 	large percentage.
-	
+
 	So I have left in the second sweep in all cases.
-	
+
 	There are a couple of questions here:
 	1. Can we find a better hash function, or will we forever need a
 		second sweep?
@@ -180,7 +194,7 @@
 	-	language.h, which provides language-specific info about
 			tokens, concerning their suitability as initial
 			and final tokens, to be used by higher levels.
-			
+
 	This structure is not satisfactory, but it is also unreasonable
 	to combine them in one interface.
 
@@ -509,11 +523,11 @@
 	some calculations on the number of duplicates normally encountered
 	in hash functions, I conclude that our function in hash.c is quite
 	good.  Removed all the statistics-gathering stuff.
-	
+
 	Actually, hash_table[] is not the hash table at all; it is a
 	forward reference table; likewise, the real hash table was called
 	last[].  Renamed both.
-	
+
 	There is a way to keep the hash table local without putting it on
 	the stack: use malloc().
 
@@ -598,10 +612,10 @@
 		<< 7				203	540
 	Conclusion: it doesn't matter, unless you do it wrong.
 
-01-Oct-1983	Dic8k Grune (dick) at vu44
+01-Oct-1983	Dick Grune (dick) at vu44
 	Oldest known files.
 
 #	This file is part of the software similarity tester SIM.
 #	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-#	$Id: ChangeLog,v 2.15 2008/09/23 09:07:10 dick Exp $
+#	$Id: ChangeLog,v 2.18 2012-05-08 12:15:59 Gebruiker Exp $
 #

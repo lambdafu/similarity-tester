@@ -1,6 +1,6 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: pass2.c,v 2.11 2008/09/23 09:07:12 dick Exp $
+	$Id: pass2.c,v 2.17 2012-06-05 09:58:53 Gebruiker Exp $
 */
 
 #include	<stdio.h>
@@ -20,10 +20,10 @@ static void pass2_txt(struct text *txt);
 static int next_eol_obtained(void);
 
 void
-Pass2(void) {
+Retrieve_Runs(void) {
 	int n;
 
-	for (n = 0; n < NumberOfTexts; n++) {
+	for (n = 0; n < Number_Of_Texts; n++) {
 		pass2_txt(&Text[n]);
 	}
 }
@@ -43,12 +43,13 @@ pass2_txt(struct text *txt) {
 	if (!txt->tx_pos)	/* no need to scan the file */
 		return;
 
-	if (!OpenText(Second, txt)) {
+	if (!Open_Text(Second, txt)) {
 		fprintf(stderr, ">>>> File %s disappeared <<<<\n",
 			txt->tx_fname
 		);
+		return;
 	}
-	/* sets lex_nl_cnt and lex_tk_cnt */
+	/* Open_Text() initializes lex_nl_cnt and lex_tk_cnt */
 
 #ifdef	DB_POS
 	db_print_pos_list("before sorting", txt->tx_pos);
@@ -105,13 +106,13 @@ pass2_txt(struct text *txt) {
 	db_print_pos_list("after scanning", txt->tx_pos);
 #endif	/* DB_POS */
 
-	CloseText(Second, txt);
+	Close_Text(Second, txt);
 }
 
 static int
 next_eol_obtained(void) {
-	while (NextTextTokenObtained(Second)) {
-		if (TOKEN_EQ(lex_token, EOL)) return 1;
+	while (Next_Text_Token_Obtained(Second)) {
+		if (Token_EQ(lex_token, End_Of_Line)) return 1;
 	}
 	return 0;
 }
@@ -120,34 +121,35 @@ next_eol_obtained(void) {
 
 static void
 db_print_pos(const struct position *pos) {
-	fprintf(DebugFile, "pos type: %s; token count: %u",
+	fprintf(Debug_File, "pos type = %s; %s count = %u",
 		(pos->ps_type == 0 ? "first" : " last"),
+		token_name,
 		pos->ps_tk_cnt
 	);
-	fprintf(DebugFile, ", line#: ");
+	fprintf(Debug_File, ", line # = ");
 	if (pos->ps_nl_cnt == -1) {
-		fprintf(DebugFile, "<NOT SET>");
+		fprintf(Debug_File, "<NOT SET>");
 	}
 	else {
-		fprintf(DebugFile, "%u", pos->ps_nl_cnt);
+		fprintf(Debug_File, "%u", pos->ps_nl_cnt);
 	}
-	fprintf(DebugFile, "\n");
+	fprintf(Debug_File, "\n");
 }
 
 static void
 db_print_pos_list(const char *msg, const struct position *pos) {
-	fprintf(DebugFile, "\n**** DB_PRINT_POS_LIST, %s ****\n", msg);
+	fprintf(Debug_File, "\n**** DB_PRINT_POS_LIST, %s ****\n", msg);
 
 	while (pos) {
 		db_print_pos(pos);
 		pos = pos->ps_next;
 	}
-	fprintf(DebugFile, "\n");
+	fprintf(Debug_File, "\n");
 }
 
 static void
 db_print_lex(const char *fn) {
-	fprintf(DebugFile, "%s: lex_tk_cnt = %u, lex_nl_cnt = %u\n",
+	fprintf(Debug_File, "%s: lex_tk_cnt = %u, lex_nl_cnt = %u\n",
 		fn, lex_tk_cnt, lex_nl_cnt);
 }
 

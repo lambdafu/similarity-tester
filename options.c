@@ -1,6 +1,6 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: options.c,v 1.5 2008/09/23 09:07:11 dick Exp $
+	$Id: options.c,v 1.10 2012-05-13 09:05:49 Gebruiker Exp $
 */
 
 #include	<stdio.h>
@@ -39,8 +39,13 @@ do_options(
 	return skips;
 }
 
+void
+set_option(char ch) {
+	options[(int)ch]++;
+}
+
 int
-option_set(int ch) {
+is_set_option(int ch) {
 	return options[ch];
 }
 
@@ -57,9 +62,8 @@ do_arg(
 		const struct option *op;
 
 		for (op = optlist; op->op_char; op++) {
-			/* for every allowed option */
 			if (opc == op->op_char) {
-				options[(int)opc]++;
+				set_option(opc);
 				if (op->op_indicator != ' ') {
 					consumed = opt_value(
 						progname, op, arg, argv
@@ -79,7 +83,7 @@ do_arg(
 	if (!consumed) {
 		consumed = 1;
 	}
-	
+
 	return consumed;
 }
 
@@ -105,9 +109,9 @@ opt_value(
 			" option -%c requires another argument",
 			op->op_char
 		);
+		return 0;
 		/*NOTREACHED*/
 	}
-
 }
 
 static void

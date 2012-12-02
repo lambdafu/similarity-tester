@@ -1,11 +1,41 @@
+
+- Microsoft comment (// ... unescaped \n)
+
+- better structure between X.h and X.c
+
+- runs reported as ... matching text only ... (proper name for Retrieve_Runs())
+
+? db_ not protected by #ifdef but by compilation to void
+
+* see emails
++	Marcus Brinkmann, separate letters
++	Scott Kuhl, percentages
+-	Yaroslav Halchenko, identifying non-existent lines
++	Rumen Stefanov,  UTF-8
++	Jonathan Martin, UTF-8
+
+- plug memory leaks (and still report memory usage!)
+
 - remove language.h from algollike.h
+
+- unify idf2token() in *lang.l
+
+? remove Miranda
 
 X Mon Apr 11 13:23:41 1994: sim_orca
 X Thu May 13 23:02:46 1993: sim ook voor C++ en Ada
 
-Are these still useful?:
-- unsigned int ????; changing to int may change the semantics!
+Done ================================================================
+
 + register - removed
 
-? DB_HASH
-? How good is the hashing? Need better statistics.
++ Run hashing OK: average chain length = 1.5, for sim-ing the sources of MCD2
++ Idf hashing OK: smooth distribution when sim-ing the sources of MCD2
+
++ use two-byte tokens to obtain better resolution for sim_text and on -F option
+  and UTF-8 (Johnson, Benjamin (US - Chicago))
+
++ different defaults per program
+
++ cleaning up sim.c  & names
+

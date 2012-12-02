@@ -1,6 +1,6 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: pass3.c,v 2.13 2008/09/23 09:07:12 dick Exp $
+	$Id: pass3.c,v 2.19 2012-06-05 09:58:53 Gebruiker Exp $
 */
 
 #include	<stdio.h>
@@ -9,6 +9,7 @@
 #include	"system.par"
 #include	"debug.par"
 #include	"sim.h"
+#include	"text.h"
 #include	"runs.h"
 #include	"Malloc.h"
 #include	"error.h"
@@ -24,37 +25,29 @@ static void db_run(const struct run *);
 static FILE *open_chunk(const struct chunk *);
 static void fill_line(FILE *, char []);
 static void clear_line(char []);
-static void show_runs(void);
 static void show_run(const struct run *);
 static void show_2C_line(const char [], const char []);
 static void show_1C_line(FILE *, const char *);
-static int prhead(const struct chunk *);
+static int pr_head(const struct chunk *);
 static int prs(const char *);
 static int pru(unsigned int);
 static int unslen(unsigned int);
 
-static int maxline;			/* Actual maximum line length */
+static int max_line_length;		/* Actual maximum line length */
 static char *line0;			/* by Malloc() */
 static char *line1;
 
 void
-Pass3(void) {
-	if (option_set('p')) {
-		show_percentages();
-	}
-	else {
-		show_runs();
-	}
-}
-
-static void
-show_runs(void) {
+Show_Runs(void) {
 	AisoIter iter;
 	struct run *run;
 
-	maxline = PageWidth / 2 - 2;
-	line0 = Malloc((unsigned int)((maxline + 1) * sizeof (char)));
-	line1 = Malloc((unsigned int)((maxline + 1) * sizeof (char)));
+#ifdef	DB_RUN
+	fprintf(Debug_File, "Starting Show_Runs()\n");
+#endif	/* DB_RUN */
+	max_line_length = Page_Width / 2 - 2;
+	line0 = Malloc((unsigned int)((max_line_length + 1) * sizeof (char)));
+	line1 = Malloc((unsigned int)((max_line_length + 1) * sizeof (char)));
 
 	OpenIter(&iter);
 	while (GetAisoItem(&iter, &run)) {
@@ -62,7 +55,7 @@ show_runs(void) {
 		db_run(run);
 #endif	/* DB_RUN */
 		show_run(run);
-		fprintf(OutputFile, "\n");
+		fprintf(Output_File, "\n");
 	}
 	CloseIter(&iter);
 
@@ -73,8 +66,8 @@ show_runs(void) {
 static void
 show_run(const struct run *run) {
 	/* The animals came in two by two ... */
-	const struct chunk *cnk0 = &run->rn_cn0;
-	const struct chunk *cnk1 = &run->rn_cn1;
+	const struct chunk *cnk0 = &run->rn_chunk0;
+	const struct chunk *cnk1 = &run->rn_chunk1;
 	unsigned int nl_cnt0 =
 			cnk0->ch_last.ps_nl_cnt - cnk0->ch_first.ps_nl_cnt;
 	unsigned int nl_cnt1 =
@@ -83,31 +76,31 @@ show_run(const struct run *run) {
 	FILE *f1;
 
 	/* display heading of chunk */
-	if (!option_set('d')) {
+	if (!is_set_option('d')) {
 		/* no assumptions about the lengths of the file names! */
 		unsigned int size = run->rn_size;
 		int pos = 0;
 
-		pos += prhead(cnk0);
-		while (pos < maxline + 1) {
+		pos += pr_head(cnk0);
+		while (pos < max_line_length + 1) {
 			pos += prs(" ");
 		}
 		pos += prs("|");
-		pos += prhead(cnk1);
-		while (pos < 2*maxline - unslen(size)) {
+		pos += pr_head(cnk1);
+		while (pos < 2*max_line_length - unslen(size)) {
 			pos += prs(" ");
 		}
-		fprintf(OutputFile, "[%u]\n", size);
+		fprintf(Output_File, "[%u]\n", size);
 	}
 	else {
-		(void)prhead(cnk0);
-		fprintf(OutputFile, "\n");
-		(void)prhead(cnk1);
-		fprintf(OutputFile, "\n");
+		(void)pr_head(cnk0);
+		fprintf(Output_File, "\n");
+		(void)pr_head(cnk1);
+		fprintf(Output_File, "\n");
 	}
 
 	/* stop if that suffices */
-	if (option_set('n'))
+	if (is_set_option('n'))
 		return;			/* ... had enough so soon ... */
 
 	/* open the files that hold the chunks */
@@ -115,7 +108,7 @@ show_run(const struct run *run) {
 	f1 = open_chunk(cnk1);
 
 	/* display the chunks in the required format */
-	if (!option_set('d')) {
+	if (!is_set_option('d')) {
 		/* fill 2-column lines and print them */
 		while (nl_cnt0 != 0 || nl_cnt1 != 0) {
 			if (nl_cnt0) {
@@ -140,7 +133,7 @@ show_run(const struct run *run) {
 		while (nl_cnt0--) {
 			show_1C_line(f0, "<");
 		}
-		fprintf(OutputFile, "---\n");
+		fprintf(Output_File, "---\n");
 		while (nl_cnt1--) {
 			show_1C_line(f1, ">");
 		}
@@ -152,7 +145,7 @@ show_run(const struct run *run) {
 }
 
 static int
-prhead(const struct chunk *cnk) {
+pr_head(const struct chunk *cnk) {
 	int pos = 0;
 
 	pos += prs(cnk->ch_text->tx_fname);
@@ -165,13 +158,13 @@ prhead(const struct chunk *cnk) {
 
 static int
 prs(const char *str) {
-	fprintf(OutputFile, "%s", str);
+	fprintf(Output_File, "%s", str);
 	return strlen(str);
 }
 
 static int
 pru(unsigned int u) {
-	fprintf(OutputFile, "%u", u);
+	fprintf(Output_File, "%u", u);
 	return unslen(u);
 }
 
@@ -187,8 +180,10 @@ unslen(unsigned int u) {
 
 static FILE *
 open_chunk(const struct chunk *cnk) {
-	/*	opens the file in which the chunk resides, positions the
-		file at the beginning of the chunk and returns the file pointer
+	/*	Opens the file in which the chunk resides, positions the
+		file at the beginning of the chunk and returns the file pointer.
+		Note that we use fopen() here, which opens a character stream,
+		rather than Open_Text(), which opens a token stream.
 	*/
 	const char *fname = cnk->ch_text->tx_fname;
 	FILE *f = fopen(fname, "r");
@@ -229,7 +224,7 @@ fill_line(FILE *f, char ln[]) {
 		}
 		if (indent == 8) {
 			/* every eight blanks give one blank */
-			if (lpos < maxline) {
+			if (lpos < max_line_length) {
 				ln[lpos++] = ' ';
 			}
 			indent = 0;
@@ -242,7 +237,7 @@ fill_line(FILE *f, char ln[]) {
 			/* replace tabs by blanks */
 			ch = ' ';
 		}
-		if (lpos < maxline) {
+		if (lpos < max_line_length) {
 			ln[lpos++] = ch;
 		}
 		ch = getc(f);
@@ -263,18 +258,18 @@ show_2C_line(const char ln0[], const char ln1[]) {
 	*/
 	int i;
 
-	for (i = 0; i < maxline && ln0[i] != '\0'; i++) {
-		fputc(ln0[i], OutputFile);
+	for (i = 0; i < max_line_length && ln0[i] != '\0'; i++) {
+		fputc(ln0[i], Output_File);
 	}
-	for (; i < maxline; i++) {
-		fputc(' ', OutputFile);
+	for (; i < max_line_length; i++) {
+		fputc(' ', Output_File);
 	}
-	fprintf(OutputFile, " |");
+	fprintf(Output_File, " |");
 
-	for (i = 0; i < maxline && ln1[i] != '\0'; i++) {
-		fputc(ln1[i], OutputFile);
+	for (i = 0; i < max_line_length && ln1[i] != '\0'; i++) {
+		fputc(ln1[i], Output_File);
 	}
-	fprintf(OutputFile, "\n");
+	fprintf(Output_File, "\n");
 }
 
 static void
@@ -283,11 +278,11 @@ show_1C_line(FILE *f, const char *marker) {
 	*/
 	int ch;
 
-	fprintf(OutputFile, "%s", marker);
+	fprintf(Output_File, "%s", marker);
 	while ((ch = getc(f)), ch > 0 && ch != '\n') {
-		fputc(ch, OutputFile);
+		fputc(ch, Output_File);
 	}
-	fputc('\n', OutputFile);
+	fputc('\n', Output_File);
 }
 
 #ifdef	DB_RUN
@@ -297,26 +292,10 @@ static void db_chunk(const struct chunk *);
 static void
 db_run(const struct run *run) {
 	/* prints detailed data about a run */
-	const struct chunk *cnk0 = &run->rn_cn0;
-	const struct chunk *cnk1 = &run->rn_cn1;
+	const struct chunk *cnk0 = &run->rn_chunk0;
+	const struct chunk *cnk1 = &run->rn_chunk1;
 
-	fprintf(DebugFile, "File %s / file %s:\n",
-		cnk0->ch_text->tx_fname,
-		cnk1->ch_text->tx_fname
-	);
-	fprintf(DebugFile, "from token %u/%u to %u/%u:",
-		cnk0->ch_first.ps_tk_cnt, cnk1->ch_first.ps_tk_cnt,
-		cnk0->ch_last.ps_tk_cnt, cnk1->ch_last.ps_tk_cnt
-	);
-	fprintf(DebugFile, " from lines %u/%u to %u/%u:",
-		cnk0->ch_first.ps_nl_cnt, cnk1->ch_first.ps_nl_cnt,
-		cnk0->ch_last.ps_nl_cnt, cnk1->ch_last.ps_nl_cnt
-	);
-	fprintf(DebugFile, " %u %s\n",
-		run->rn_size,
-		(run->rn_size == 1 ? "token" : "tokens")
-	);
-
+	db_run_info(0, run, 1);
 	db_chunk(cnk0);
 	db_chunk(cnk1);
 }
@@ -331,25 +310,28 @@ db_chunk(const struct chunk *cnk) {
 	unsigned int start = cnk->ch_text->tx_start;
 
 	if (first->ps_tk_cnt > 0) {
-		fprintf(DebugFile, "...");
-		print_token(stdout, TokenArray[start + first->ps_tk_cnt - 1]);
-		fprintf(DebugFile, "  ");
+		fprintf(Debug_File, "...");
+		fprint_token(Debug_File,
+			Token_Array[start + first->ps_tk_cnt - 1]);
+		fprintf(Debug_File, "  ");
 	}
 	else {	/* create same offset as above */
-		fprintf(DebugFile, "       ");
+		fprintf(Debug_File, "       ");
 	}
 
 	for (i = first->ps_tk_cnt; i <= last->ps_tk_cnt; i++) {
-		print_token(stdout, TokenArray[start + i]);
+		fprintf(Debug_File, " ");
+		fprint_token(Debug_File, Token_Array[start + i]);
 	}
 
 	if (start + last->ps_tk_cnt + 1 < cnk->ch_text->tx_limit) {
-		fprintf(DebugFile, "  ");
-		print_token(stdout, TokenArray[start + last->ps_tk_cnt + 1]);
-		fprintf(DebugFile, "...");
+		fprintf(Debug_File, "  ");
+		fprint_token(Debug_File,
+			Token_Array[start + last->ps_tk_cnt + 1]);
+		fprintf(Debug_File, "...");
 	}
 
-	fprintf(DebugFile, "\n");
+	fprintf(Debug_File, "\n");
 }
 
 #endif	/* DB_RUN */

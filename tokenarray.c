@@ -1,6 +1,6 @@
 /*	This file is part of the software similarity tester SIM.
 	Written by Dick Grune, Vrije Universiteit, Amsterdam.
-	$Id: tokenarray.c,v 1.5 2008/09/23 09:07:12 dick Exp $
+	$Id: tokenarray.c,v 1.11 2012-06-05 09:58:55 Gebruiker Exp $
 */
 
 #include	"error.h"
@@ -10,26 +10,27 @@
 
 #define	TK_INCR		10000		/* increment of token array size */
 
-TOKEN *TokenArray;			/* to be filled by Malloc() */
-static unsigned int tk_size;		/* size of TokenArray[] */
-static unsigned int tk_free;		/* next free position in TokenArray[] */
+Token *Token_Array;			/* to be filled by Malloc() */
+static unsigned int tk_size;		/* size of Token_Array[] */
+static unsigned int tk_free;		/* next free position in Token_Array[]*/
 
 void
-InitTokenArray(void) {
+Init_Token_Array(void) {
+	if (Token_Array) Free(Token_Array);
 	tk_size = TK_INCR;
-	TokenArray = (TOKEN *)Malloc(sizeof (TOKEN) * tk_size);
+	Token_Array = (Token *)Malloc(sizeof (Token) * tk_size);
 	tk_free = 1;		/* don't use position 0 */
 }
 
 void
-StoreToken(void) {
+Store_Token(Token tk) {
 	if (tk_free == tk_size) {
 		/* allocated array is full; try to increase its size */
 		unsigned int new_size = tk_size + TK_INCR;
-		TOKEN *new_array = (TOKEN *)TryRealloc(
-			(char *)TokenArray,
-			sizeof (TOKEN) * new_size
-		);
+		Token *new_array =
+			(Token *)TryRealloc(
+				(char *)Token_Array, sizeof (Token) * new_size
+			);
 
 		if (!new_array) {
 			/* we failed */
@@ -37,14 +38,14 @@ StoreToken(void) {
 		}
 		if (new_size < tk_free)
 			fatal("internal error: TK_INCR causes numeric overflow");
-		TokenArray = new_array, tk_size = new_size;
+		Token_Array = new_array, tk_size = new_size;
 	}
 
 	/* now we are sure there is room enough */
-	TokenArray[tk_free++] = lex_token;
+	Token_Array[tk_free++] = tk;
 }
 
 unsigned int
-TextLength(void) {
+Text_Length(void) {
 	return tk_free;
 }

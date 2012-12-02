@@ -21,7 +21,7 @@ the pertinent chapter.
 
 Each file is tokenized using an lex-generated scanner appropriate for
 the input.  Each token fits in one byte, possibly using all 8 bits.  The
-tokens are stored in the array TokenArray[], which is extended by
+tokens are stored in the array Token_Array[], which is extended by
 reallocation if it overflows.  See tokenarray.c.
 
 Also, to optimize away pass 2, an attempt is made to remember the token
@@ -51,7 +51,7 @@ last_index[i] is the index of the latest token with hash_code i, or 0 if
 there is none.  If at a given position p, we find that the text ahead of
 us has hash code i, last_index[i] tells us which position in
 forward_references[] will have to be updated to p.
-See MakeForwardReferences().
+See MakeForward_References().
 
 For long text sequences (say hundreds of thousands of tokens), the
 hashing is not really efficient any more since too many spurious matches
@@ -63,7 +63,7 @@ For the UNIX manuals this reduced the number of matches from 91.9% to 1.9%
 
 	DETERMINING THE SET OF INTERESTING RUNS
 
-The overall structure of the routine Compare() (see compare.c) is:
+The overall structure of the routine Compare_Files() (see compare.c) is:
 
 for all new files
 	for all texts it must be compared to
@@ -135,7 +135,7 @@ sim:
 	init language, to precompute tables
 
 	pass1, read the files
-		# there is an array TokenArray[] that holds all input tokens
+		# there is an array Token_Array[] that holds all input tokens
 
 	make forward reference table
 		# there is an array forward_references[], with one entry for
@@ -153,7 +153,7 @@ sim:
 pass1, read the files:
 	for each file
 		divide the text into tokens
-		store all tokens except newlines in TokenArray and try to
+		store all tokens except newlines in Token_Array and try to
 			keep a record of the newline positions
 
 
